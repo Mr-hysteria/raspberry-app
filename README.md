@@ -42,6 +42,8 @@ sudo apt update
 # x11-xserver-utils: 屏幕控制工具 (xset)
 # nginx: 静态资源服务器
 sudo apt install fonts-wqy-zenhei unclutter x11-xserver-utils nginx -y
+# 安装浏览器相关环境
+sudo apt update && sudo apt install chromium x11-xserver-utils -y
 ```
 
 #### 第四步：锁定 5 寸屏分辨率
