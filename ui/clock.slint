@@ -1,0 +1,72 @@
+export component AppWindow inherits Window {
+    in-out property <string> time-text: "00:00";
+    in-out property <string> seconds-text: "00";
+    in-out property <string> date-text: "0000年00月00日";
+    in-out property <string> weekday-text: "星期一";
+
+    preferred-width: 800px;
+    preferred-height: 480px;
+    background: #050505;
+
+    Rectangle {
+        width: parent.width;
+        height: parent.height;
+        background: #050505;
+
+        Text {
+            x: 0;
+            y: parent.height * 0.17;
+            width: parent.width;
+            height: parent.height * 0.34;
+            text: root.time-text;
+            color: #f5f7fa;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            font-family: "WenQuanYi Zen Hei";
+            font-size: 156px;
+            font-weight: 500;
+        }
+
+        Text {
+            x: parent.width * 0.76;
+            y: parent.height * 0.275;
+            width: parent.width * 0.12;
+            height: parent.height * 0.1;
+            text: root.seconds-text;
+            color: #9aa4b2;
+            horizontal-alignment: left;
+            vertical-alignment: center;
+            font-family: "WenQuanYi Zen Hei";
+            font-size: 38px;
+            font-weight: 500;
+        }
+
+        Text {
+            x: 0;
+            y: parent.height * 0.6;
+            width: parent.width;
+            height: parent.height * 0.1;
+            text: root.date-text;
+            color: #d5d9df;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            font-family: "WenQuanYi Zen Hei";
+            font-size: 30px;
+            font-weight: 400;
+        }
+
+        Text {
+            x: 0;
+            y: parent.height * 0.72;
+            width: parent.width;
+            height: parent.height * 0.08;
+            text: root.weekday-text;
+            color: #7f8a99;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            font-family: "WenQuanYi Zen Hei";
+            font-size: 20px;
+            font-weight: 500;
+        }
+    }
+}

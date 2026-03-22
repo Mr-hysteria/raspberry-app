@@ -1,0 +1,19 @@
+# Rust 编译产物
+/target/
+
+# Cargo 锁文件（库项目不提交，二进制项目可按需保留）
+# Cargo.lock
+
+# 编辑器 / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 环境变量
+.env
+.env.local
+
+# 日志
+*.log
