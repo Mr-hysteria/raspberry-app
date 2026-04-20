@@ -29,6 +29,18 @@ run-clock.sh          运行脚本
 scripts/bootstrap-pi.sh  树莓派初始化脚本
 ```
 
+## 文档入口
+
+如果是第一次接手这个仓库，建议优先看下面这些文档：
+
+- `README.md`：项目概览、启动方式、当前特性
+- `agent.md`：面向后续 agent / 开发者的协作入口、上下文索引、文档更新契约
+- `开发SOP.md`：开发、交叉编译、部署到树莓派的操作说明
+- `docs/decisions.md`：关键技术决策记录
+- `docs/iteration-log.md`：每次迭代的目标、完成项、遗留项与后续建议
+
+每次迭代结束后，建议至少检查上述文档是否需要同步更新，避免项目知识只留在对话或提交记录里。
+
 ## 首次安装
 
 在树莓派项目目录执行：
@@ -90,4 +102,3 @@ cd /home/raspberry/Desktop/code/raspberry-app
 sudo apt purge -y chromium chromium-common chromium-l10n chromium-sandbox rpi-chromium-mods nginx nginx-common
 sudo apt autoremove -y
 ```
-
