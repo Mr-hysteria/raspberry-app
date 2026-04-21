@@ -14,8 +14,11 @@
 ## 2. 当前状态
 
 - 当前已完成：
-  - 原生全屏时钟界面
+  - 原生全屏疗愈时钟界面
   - 时间、秒、日期、星期展示
+  - 日进度与年进度展示
+  - 语录切换与昼夜主题切换
+  - 长按进入阅读模式
   - 中文字体显示
   - `800x480` 小屏布局适配
   - 树莓派初始化脚本与运行脚本
@@ -34,12 +37,13 @@
 
 1. `README.md`
 2. `agent.md`
-3. `开发SOP.md`
-4. `src/main.rs`
-5. `ui/clock.slint`
-6. `run-clock.sh`
-7. `docs/decisions.md`
-8. `docs/iteration-log.md`
+3. `docs/prd-healing-life.md`
+4. `开发SOP.md`
+5. `src/main.rs`
+6. `ui/clock.slint`
+7. `run-clock.sh`
+8. `docs/decisions.md`
+9. `docs/iteration-log.md`
 
 ### 常用命令
 
@@ -128,6 +132,7 @@ scripts/bootstrap-pi.sh 树莓派依赖安装与首次构建
   - `README.md`
   - `agent.md`
   - `开发SOP.md`
+  - `docs/prd-healing-life.md`
   - `docs/decisions.md`
   - `docs/iteration-log.md`
 
@@ -147,6 +152,8 @@ scripts/bootstrap-pi.sh 树莓派依赖安装与首次构建
   - 接手顺序或协作规则变化
 - `开发SOP.md`
   - 编译、部署、运行、排障流程变化
+- `docs/prd-healing-life.md`
+  - 产品目标、范围、交互、视觉方向变化
 - `docs/iteration-log.md`
   - 记录本次迭代目标、完成项、遗留项、风险、建议
 
@@ -163,10 +170,11 @@ scripts/bootstrap-pi.sh 树莓派依赖安装与首次构建
 1. 代码是否已验证最关键路径
 2. 本次改动影响了哪些运行命令、脚本或目录
 3. `README.md` 是否需要同步
-4. `开发SOP.md` 是否需要同步
-5. `docs/decisions.md` 是否需要新增决策记录
-6. `docs/iteration-log.md` 是否已补本次迭代摘要
-7. `agent.md` 中的当前状态、风险、推荐阅读顺序是否仍然准确
+4. `docs/prd-healing-life.md` 是否需要同步
+5. `开发SOP.md` 是否需要同步
+6. `docs/decisions.md` 是否需要新增决策记录
+7. `docs/iteration-log.md` 是否已补本次迭代摘要
+8. `agent.md` 中的当前状态、风险、推荐阅读顺序是否仍然准确
 
 ## 9. 当前建议补强项
 

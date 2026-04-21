@@ -1,6 +1,6 @@
-# Raspberry Pi 全屏时钟
+# Raspberry Pi 疗愈节律时钟
 
-这是一个针对 `Raspberry Pi Zero 2 W` 优化的全屏时钟项目，现已切换为 `Rust + Slint` 原生实现，不再依赖 `Chromium`。
+这是一个针对 `Raspberry Pi Zero 2 W` 优化的全屏疗愈节律时钟项目，现已切换为 `Rust + Slint` 原生实现，不再依赖 `Chromium`。
 
 ## 目标设备
 
@@ -36,6 +36,7 @@ scripts/bootstrap-pi.sh  树莓派初始化脚本
 - `README.md`：项目概览、启动方式、当前特性
 - `agent.md`：面向后续 agent / 开发者的协作入口、上下文索引、文档更新契约
 - `开发SOP.md`：开发、交叉编译、部署到树莓派的操作说明
+- `docs/prd-healing-life.md`：面向“愈见·生活”方向的产品需求文档 v2
 - `docs/decisions.md`：关键技术决策记录
 - `docs/iteration-log.md`：每次迭代的目标、完成项、遗留项与后续建议
 
@@ -79,9 +80,14 @@ cd /home/raspberry/Desktop/code/raspberry-app
 
 ## 当前特性
 
-- 原生全屏时钟界面
+- 原生全屏疗愈时钟界面
 - 显示时、分、秒
 - 显示日期与星期
+- 显示日进度与年进度
+- 按时间段切换本地语录
+- 支持轻触切换语录
+- 支持长按进入 30 分钟阅读模式
+- 支持昼夜主题切换
 - 中文字体显示
 - 针对 `800x480` 小屏布局优化
 - 软件渲染，无需 GPU 加速

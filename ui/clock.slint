@@ -3,70 +3,334 @@ export component AppWindow inherits Window {
     in-out property <string> seconds-text: "00";
     in-out property <string> date-text: "0000年00月00日";
     in-out property <string> weekday-text: "星期一";
+    in-out property <string> quote-text: "慢一点，没关系，只要你一直在走。";
+    in-out property <string> reading-countdown-text: "30:00";
+    in-out property <string> reading-caption-text: "静心阅读";
+    in-out property <float> day-progress: 0.0;
+    in-out property <float> year-progress: 0.0;
+    in-out property <float> ambient-wave: 0.0;
+    in-out property <bool> night-mode: false;
+    in-out property <bool> reading-mode-active: false;
+
+    callback screen-pressed();
+    callback screen-released();
+    callback screen-tapped();
 
     preferred-width: 800px;
     preferred-height: 480px;
-    background: #050505;
+    background: root.night-mode ? #12171f : #eef1ea;
 
     Rectangle {
         width: parent.width;
         height: parent.height;
-        background: #050505;
+        background: root.night-mode ? #12171f : #eef1ea;
 
-        Text {
-            x: 0;
-            y: parent.height * 0.17;
-            width: parent.width;
-            height: parent.height * 0.34;
-            text: root.time-text;
-            color: #f5f7fa;
-            horizontal-alignment: center;
-            vertical-alignment: center;
-            font-family: "WenQuanYi Zen Hei";
-            font-size: 156px;
-            font-weight: 500;
+        Rectangle {
+            x: -70px + root.ambient-wave * 36px;
+            y: root.night-mode ? -30px : -24px;
+            width: 300px;
+            height: 220px;
+            border-radius: 110px;
+            background: root.night-mode ? #20293888 : #dfe6d888;
         }
 
-        Text {
-            x: parent.width * 0.76;
-            y: parent.height * 0.275;
-            width: parent.width * 0.12;
-            height: parent.height * 0.1;
-            text: root.seconds-text;
-            color: #9aa4b2;
-            horizontal-alignment: left;
-            vertical-alignment: center;
-            font-family: "WenQuanYi Zen Hei";
-            font-size: 38px;
-            font-weight: 500;
+        Rectangle {
+            x: parent.width - 250px - root.ambient-wave * 18px;
+            y: 26px + root.ambient-wave * 10px;
+            width: 240px;
+            height: 180px;
+            border-radius: 90px;
+            background: root.night-mode ? #c38b5a22 : #b4c2b055;
         }
 
-        Text {
-            x: 0;
-            y: parent.height * 0.6;
-            width: parent.width;
-            height: parent.height * 0.1;
-            text: root.date-text;
-            color: #d5d9df;
-            horizontal-alignment: center;
-            vertical-alignment: center;
-            font-family: "WenQuanYi Zen Hei";
-            font-size: 30px;
-            font-weight: 400;
+        Rectangle {
+            x: parent.width - 310px;
+            y: parent.height - 190px - root.ambient-wave * 12px;
+            width: 260px;
+            height: 170px;
+            border-radius: 85px;
+            background: root.night-mode ? #4d648822 : #cfd8c844;
         }
 
-        Text {
-            x: 0;
-            y: parent.height * 0.72;
+        Rectangle {
+            x: 40px;
+            y: 34px;
+            width: parent.width - 80px;
+            height: parent.height - 68px;
+            border-radius: 28px;
+            background: root.night-mode ? #171d2699 : #fbfaf4d0;
+            border-color: root.night-mode ? #ffffff12 : #5a635b12;
+            border-width: 1px;
+
+            Rectangle {
+                x: 0;
+                y: 0;
+                width: parent.width;
+                height: 360px;
+                background: transparent;
+
+                Rectangle {
+                    x: 0;
+                    y: 0;
+                    width: parent.width * 0.63;
+                    height: parent.height;
+                    background: transparent;
+
+                    Text {
+                        x: 42px;
+                        y: 56px;
+                        width: parent.width - 84px;
+                        height: 132px;
+                        text: root.time-text;
+                        color: root.night-mode ? #f4efe7 : #35352f;
+                        font-family: "Noto Serif CJK SC";
+                        font-size: 136px;
+                        font-weight: 400;
+                        vertical-alignment: center;
+                    }
+
+                    Text {
+                        x: parent.width - 54px;
+                        y: 88px;
+                        width: 58px;
+                        height: 36px;
+                        text: root.seconds-text;
+                        color: root.night-mode ? #b8ab98 : #847869;
+                        font-family: "Noto Serif CJK SC";
+                        font-size: 28px;
+                        font-weight: 400;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+
+                    Text {
+                        x: 48px;
+                        y: 210px;
+                        width: parent.width - 96px;
+                        height: 34px;
+                        text: root.date-text;
+                        color: root.night-mode ? #d7d2ca : #626055;
+                        font-family: "WenQuanYi Zen Hei";
+                        font-size: 26px;
+                        font-weight: 400;
+                        vertical-alignment: center;
+                    }
+
+                    Text {
+                        x: 48px;
+                        y: 248px;
+                        width: parent.width - 96px;
+                        height: 28px;
+                        text: root.weekday-text;
+                        color: root.night-mode ? #a49e95 : #908875;
+                        font-family: "WenQuanYi Zen Hei";
+                        font-size: 18px;
+                        font-weight: 500;
+                        vertical-alignment: center;
+                    }
+                }
+
+                Rectangle {
+                    x: parent.width * 0.64;
+                    y: 36px;
+                    width: parent.width * 0.36 - 34px;
+                    height: 288px;
+                    background: transparent;
+
+                    Text {
+                        x: 4px;
+                        y: 0;
+                        width: parent.width - 8px;
+                        height: 24px;
+                        text: "今日节律";
+                        color: root.night-mode ? #afa89d : #70695a;
+                        font-family: "WenQuanYi Zen Hei";
+                        font-size: 15px;
+                        horizontal-alignment: center;
+                    }
+
+                    Rectangle {
+                        x: parent.width / 2 - 10px;
+                        y: 38px;
+                        width: 20px;
+                        height: 184px;
+                        border-radius: 10px;
+                        background: root.night-mode ? #ffffff12 : #5f665d10;
+                    }
+
+                    Rectangle {
+                        x: parent.width / 2 - 10px;
+                        y: 38px + (184px * (1.0 - root.day-progress));
+                        width: 20px;
+                        height: 184px * root.day-progress;
+                        border-radius: 10px;
+                        background: root.night-mode ? #d4b28f : #8aa38d;
+                    }
+
+                    Rectangle {
+                        x: parent.width / 2 - 2px;
+                        y: 62px;
+                        width: 4px;
+                        height: 24px;
+                        border-radius: 2px;
+                        background: root.day-progress >= 0.20 ? (root.night-mode ? #ebd8c2 : #8aa38d) : (root.night-mode ? #ffffff18 : #7f877818);
+                    }
+
+                    Rectangle {
+                        x: parent.width / 2 - 22px;
+                        y: 98px;
+                        width: 16px;
+                        height: 10px;
+                        border-radius: 8px;
+                        background: root.day-progress >= 0.35 ? (root.night-mode ? #dfc1a4 : #93ad94) : (root.night-mode ? #ffffff16 : #7f877816);
+                    }
+
+                    Rectangle {
+                        x: parent.width / 2 + 6px;
+                        y: 128px;
+                        width: 16px;
+                        height: 10px;
+                        border-radius: 8px;
+                        background: root.day-progress >= 0.55 ? (root.night-mode ? #dfc1a4 : #93ad94) : (root.night-mode ? #ffffff16 : #7f877816);
+                    }
+
+                    Rectangle {
+                        x: parent.width / 2 - 22px;
+                        y: 162px;
+                        width: 16px;
+                        height: 10px;
+                        border-radius: 8px;
+                        background: root.day-progress >= 0.75 ? (root.night-mode ? #dfc1a4 : #93ad94) : (root.night-mode ? #ffffff16 : #7f877816);
+                    }
+
+                    Text {
+                        x: 0;
+                        y: 236px;
+                        width: parent.width;
+                        height: 22px;
+                        text: "年度进度";
+                        color: root.night-mode ? #afa89d : #70695a;
+                        font-family: "WenQuanYi Zen Hei";
+                        font-size: 14px;
+                        horizontal-alignment: center;
+                    }
+
+                    Rectangle {
+                        x: 20px;
+                        y: 264px;
+                        width: parent.width - 40px;
+                        height: 8px;
+                        border-radius: 4px;
+                        background: root.night-mode ? #ffffff10 : #5f665d10;
+                    }
+
+                    Rectangle {
+                        x: 20px;
+                        y: 264px;
+                        width: (parent.width - 40px) * root.year-progress;
+                        height: 8px;
+                        border-radius: 4px;
+                        background: root.night-mode ? #b68a66 : #9fb1a1;
+                    }
+                }
+            }
+
+            Rectangle {
+                x: 26px;
+                y: parent.height - 94px;
+                width: parent.width - 52px;
+                height: 64px;
+                border-radius: 20px;
+                background: root.night-mode ? #ffffff08 : #6c72660a;
+
+                Text {
+                    x: 24px;
+                    y: 0;
+                    width: parent.width - 48px;
+                    height: parent.height;
+                    text: root.quote-text;
+                    color: root.night-mode ? #d7d1ca : #565247;
+                    font-family: "WenQuanYi Zen Hei";
+                    font-size: 20px;
+                    font-weight: 400;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    wrap: word-wrap;
+                }
+            }
+        }
+
+        if (root.reading-mode-active): Rectangle {
             width: parent.width;
-            height: parent.height * 0.08;
-            text: root.weekday-text;
-            color: #7f8a99;
-            horizontal-alignment: center;
-            vertical-alignment: center;
-            font-family: "WenQuanYi Zen Hei";
-            font-size: 20px;
-            font-weight: 500;
+            height: parent.height;
+            background: root.night-mode ? #0f1319ee : #ece7ddef;
+
+            Rectangle {
+                x: parent.width / 2 - 170px;
+                y: parent.height / 2 - 104px;
+                width: 340px;
+                height: 208px;
+                border-radius: 30px;
+                background: root.night-mode ? #171e27ee : #f8f4ebee;
+                border-color: root.night-mode ? #ffffff10 : #4d524910;
+                border-width: 1px;
+
+                Text {
+                    x: 0;
+                    y: 42px;
+                    width: parent.width;
+                    height: 28px;
+                    text: root.reading-caption-text;
+                    color: root.night-mode ? #ada699 : #756d5f;
+                    font-family: "WenQuanYi Zen Hei";
+                    font-size: 18px;
+                    horizontal-alignment: center;
+                }
+
+                Text {
+                    x: 0;
+                    y: 74px;
+                    width: parent.width;
+                    height: 76px;
+                    text: root.reading-countdown-text;
+                    color: root.night-mode ? #f4efe7 : #3e392f;
+                    font-family: "Noto Serif CJK SC";
+                    font-size: 58px;
+                    font-weight: 400;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                Text {
+                    x: 0;
+                    y: 154px;
+                    width: parent.width;
+                    height: 20px;
+                    text: "轻触退出，和你一起慢下来";
+                    color: root.night-mode ? #8e877a : #8b8478;
+                    font-family: "WenQuanYi Zen Hei";
+                    font-size: 14px;
+                    horizontal-alignment: center;
+                }
+            }
+        }
+
+        TouchArea {
+            width: parent.width;
+            height: parent.height;
+            clicked => {
+                root.screen-tapped();
+            }
+
+            pointer-event(event) => {
+                if (event.kind == PointerEventKind.down) {
+                    root.screen-pressed();
+                }
+
+                if (event.kind == PointerEventKind.up || event.kind == PointerEventKind.cancel) {
+                    root.screen-released();
+                }
+            }
         }
     }
 }
