@@ -17,3 +17,6 @@
 
 # 日志
 *.log
+
+# Superpowers visual brainstorming artifacts
+/.superpowers/
