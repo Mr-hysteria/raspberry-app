@@ -78,6 +78,23 @@ cd /home/raspberry/Desktop/code/raspberry-app
 5. 使用 Slint software renderer 全屏显示
 ```
 
+如果你在 Mac 本地开发并希望一键交叉编译、上传并远程启动，可以在仓库根目录执行：
+
+```bash
+./scripts/deploy-and-run-pi.sh
+```
+
+脚本默认会优先使用本机 SSH 别名 `raspberry-clock`。
+
+也支持环境变量覆盖：
+
+```bash
+PI_SSH_HOST=raspberry-clock ./scripts/deploy-and-run-pi.sh
+PI_HOST=192.168.1.12 ./scripts/deploy-and-run-pi.sh
+PI_PASSWORD='your-password' ./scripts/deploy-and-run-pi.sh
+PI_REMOTE_GIT_PULL=1 ./scripts/deploy-and-run-pi.sh
+```
+
 ## 当前特性
 
 - 原生全屏疗愈时钟界面

@@ -67,6 +67,7 @@
 - 更新 `README.md` 当前特性描述
 - 更新 `agent.md` 当前状态描述
 - 补充 `开发SOP.md` 中的 SSH 连接与远程运行手册
+- 新增 `scripts/deploy-and-run-pi.sh`，默认使用本机 SSH 别名 `raspberry-clock`
 - 通过 `cargo build` 构建验证
 
 ### 影响范围

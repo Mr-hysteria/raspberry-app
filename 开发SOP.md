@@ -118,6 +118,39 @@ sshpass -p 'tang19971226' scp \
   raspberry@192.168.1.12:/home/raspberry/Desktop/code/raspberry-app/target/release/raspberry-clock
 ```
 
+### 1.4 一键交叉编译 + 上传 + 远程启动（推荐）
+
+```bash
+cd ~/Desktop/code/raspberry-app
+./scripts/deploy-and-run-pi.sh
+```
+
+这个脚本会自动完成：
+
+1. 本地交叉编译 `aarch64-unknown-linux-gnu`
+2. 确保树莓派上的目标目录存在
+3. 同步 `run-clock.sh` 和 `scripts/bootstrap-pi.sh`
+4. 上传最新二进制
+5. 远程启动全屏程序
+6. 打印如何停止远程程序和如何查看远程日志
+
+常用可选参数：
+
+```bash
+PI_SSH_HOST=raspberry-clock ./scripts/deploy-and-run-pi.sh
+PI_HOST=192.168.1.12 ./scripts/deploy-and-run-pi.sh
+PI_PASSWORD='your-password' ./scripts/deploy-and-run-pi.sh
+PI_REMOTE_GIT_PULL=1 ./scripts/deploy-and-run-pi.sh
+```
+
+说明：
+
+- 如果本机 `~/.ssh/config` 中已经配置了 `raspberry-clock`，脚本会默认优先使用这个 SSH 别名
+- 如果你已经配置了 SSH key，直接运行脚本即可
+- 如果还在使用密码登录，可以通过 `PI_PASSWORD` 传入密码
+- `PI_REMOTE_GIT_PULL=1` 会在上传前对树莓派上的仓库执行一次 `git pull --ff-only`
+- 默认情况下脚本不依赖远程 `git pull`，因为它会直接同步运行脚本和二进制
+
 ---
 
 ## 2. 在树莓派上运行
