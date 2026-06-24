@@ -19,7 +19,8 @@ sudo apt-get install -y \
     libxcursor-dev \
     libxkbcommon-x11-dev \
     pkg-config \
-    xinput
+    xinput \
+    x11-xserver-utils
 
 export RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER:-https://rsproxy.cn}"
 export RUSTUP_UPDATE_ROOT="${RUSTUP_UPDATE_ROOT:-https://rsproxy.cn/rustup}"

@@ -23,6 +23,7 @@ LOCAL_BOOTSTRAP_SCRIPT="${PROJECT_DIR}/scripts/bootstrap-pi.sh"
 
 REMOTE_BINARY_DIR="${REMOTE_PROJECT_DIR}/target/release"
 REMOTE_BINARY_PATH="${REMOTE_BINARY_DIR}/${BINARY_NAME}"
+REMOTE_BINARY_STAGING_PATH="${REMOTE_BINARY_PATH}.new"
 REMOTE_RUN_SCRIPT="${REMOTE_PROJECT_DIR}/run-clock.sh"
 REMOTE_BOOTSTRAP_SCRIPT="${REMOTE_PROJECT_DIR}/scripts/bootstrap-pi.sh"
 
@@ -85,11 +86,13 @@ scp_cmd "${LOCAL_RUN_SCRIPT}" "${REMOTE_PROJECT_REF}:${REMOTE_RUN_SCRIPT}"
 scp_cmd "${LOCAL_BOOTSTRAP_SCRIPT}" "${REMOTE_PROJECT_REF}:${REMOTE_BOOTSTRAP_SCRIPT}"
 
 echo "==> Uploading binary"
-scp_cmd "${LOCAL_BINARY_PATH}" "${REMOTE_PROJECT_REF}:${REMOTE_BINARY_PATH}"
+scp_cmd "${LOCAL_BINARY_PATH}" "${REMOTE_PROJECT_REF}:${REMOTE_BINARY_STAGING_PATH}"
 
-echo "==> Setting executable permissions"
+echo "==> Replacing the running binary"
 ssh_cmd "${REMOTE_PROJECT_REF}" \
-    "chmod +x '${REMOTE_RUN_SCRIPT}' '${REMOTE_BOOTSTRAP_SCRIPT}' '${REMOTE_BINARY_PATH}'"
+    "chmod +x '${REMOTE_RUN_SCRIPT}' '${REMOTE_BOOTSTRAP_SCRIPT}' '${REMOTE_BINARY_STAGING_PATH}'; \
+     pkill -x '${BINARY_NAME}' >/dev/null 2>&1 || true; \
+     mv -f '${REMOTE_BINARY_STAGING_PATH}' '${REMOTE_BINARY_PATH}'"
 
 echo "==> Starting app on Raspberry Pi"
 ssh_cmd "${REMOTE_PROJECT_REF}" "

@@ -11,9 +11,9 @@ export XAUTHORITY="${XAUTHORITY:-/home/raspberry/.Xauthority}"
 export SLINT_BACKEND="${SLINT_BACKEND:-winit-software}"
 export SLINT_FULLSCREEN="${SLINT_FULLSCREEN:-1}"
 
-# 关闭屏保和节能，避免时钟屏幕熄灭。
+# 关闭桌面环境的自动屏保，但保留 DPMS 供应用按时息屏。
 xset s off || true
-xset -dpms || true
+xset +dpms || true
 xset s noblank || true
 
 # 隐藏鼠标光标。
