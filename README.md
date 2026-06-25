@@ -85,7 +85,7 @@ cd /home/raspberry/Desktop/code/raspberry-app
 ~/.config/autostart/raspberry-clock.desktop
 ```
 
-LightDM 自动登录进入 LXDE 桌面后，会自动执行项目中的 `run-clock.sh`，无需再通过 SSH 手动启动。
+LightDM 自动登录进入 LXDE 桌面后，会自动执行轻量守护脚本。守护脚本启动 `run-clock.sh`，并在时钟被系统终止或异常退出后 3 秒自动恢复，无需再通过 SSH 手动启动。
 
 也可以单独安装或修复自启动配置：
 

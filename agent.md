@@ -107,7 +107,10 @@ scripts/bootstrap-pi.sh 树莓派依赖安装与首次构建
   - 优先运行 `release`，回退到 `debug`
 - `scripts/install-autostart.sh`
   - 安装 `~/.config/autostart/raspberry-clock.desktop`
-  - 在桌面自动登录后启动 `run-clock.sh`
+  - 在桌面自动登录后启动 `scripts/watch-clock.sh`
+- `scripts/watch-clock.sh`
+  - 监控 `run-clock.sh` 启动的时钟进程
+  - 进程被 OOM Killer 或异常终止后 3 秒自动重启
 
 ## 5. 关键约束
 

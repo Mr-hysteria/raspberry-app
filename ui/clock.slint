@@ -98,10 +98,10 @@ export component AppWindow inherits Window {
         }
 
         Rectangle {
-            x: parent.width - 250px;
-            y: 48px;
-            width: 192px;
-            height: 104px;
+            x: parent.width - 268px;
+            y: 42px;
+            width: 210px;
+            height: 112px;
             border-radius: 18px;
             background: #121a18a8;
             border-color: #ffffff22;
@@ -109,18 +109,18 @@ export component AppWindow inherits Window {
 
             Text {
                 x: 18px;
-                y: 16px;
+                y: 14px;
                 width: parent.width - 36px;
-                height: 20px;
+                height: 24px;
                 text: "年度倒计时";
                 color: #f8f5ee99;
                 font-family: "WenQuanYi Zen Hei";
-                font-size: 13px;
+                font-size: 17px;
             }
 
             Text {
                 x: 18px;
-                y: 38px;
+                y: 41px;
                 width: parent.width - 36px;
                 height: 35px;
                 text: root.year-remaining-text;
@@ -133,7 +133,7 @@ export component AppWindow inherits Window {
 
             Rectangle {
                 x: 18px;
-                y: 82px;
+                y: 92px;
                 width: parent.width - 36px;
                 height: 4px;
                 border-radius: 2px;
@@ -142,7 +142,7 @@ export component AppWindow inherits Window {
 
             Rectangle {
                 x: 18px;
-                y: 82px;
+                y: 92px;
                 width: (parent.width - 36px) * root.year-remaining-progress;
                 height: 4px;
                 border-radius: 2px;
@@ -151,10 +151,10 @@ export component AppWindow inherits Window {
         }
 
         Rectangle {
-            x: parent.width - 250px;
+            x: parent.width - 268px;
             y: 166px;
-            width: 192px;
-            height: 104px;
+            width: 210px;
+            height: 116px;
             border-radius: 18px;
             background: #121a18a8;
             border-color: #ffffff22;
@@ -162,18 +162,18 @@ export component AppWindow inherits Window {
 
             Text {
                 x: 18px;
-                y: 15px;
+                y: 12px;
                 width: parent.width - 36px;
-                height: 20px;
+                height: 25px;
                 text: "CPA 考试倒计时";
                 color: #f8f5ee99;
                 font-family: "WenQuanYi Zen Hei";
-                font-size: 13px;
+                font-size: 17px;
             }
 
             Text {
                 x: 18px;
-                y: 36px;
+                y: 39px;
                 width: parent.width - 36px;
                 height: 38px;
                 text: root.cpa-countdown-text;
@@ -186,13 +186,13 @@ export component AppWindow inherits Window {
 
             Text {
                 x: 18px;
-                y: 77px;
+                y: 82px;
                 width: parent.width - 36px;
-                height: 18px;
+                height: 24px;
                 text: root.cpa-date-text;
                 color: #f8f5ee85;
                 font-family: "WenQuanYi Zen Hei";
-                font-size: 12px;
+                font-size: 16px;
             }
         }
 
@@ -212,13 +212,13 @@ export component AppWindow inherits Window {
 
         Text {
             x: 64px;
-            y: parent.height - 66px;
+            y: parent.height - 70px;
             width: parent.width - 128px;
-            height: 30px;
+            height: 38px;
             text: root.quote-chinese;
             color: #f8f5eeb5;
             font-family: "WenQuanYi Zen Hei";
-            font-size: 17px;
+            font-size: 24px;
             vertical-alignment: top;
             wrap: word-wrap;
         }
