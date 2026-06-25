@@ -8,6 +8,7 @@ use std::time::Duration;
 const API_URL: &str = "https://open.iciba.com/dsapi/";
 const CACHE_FILE: &str = "daily-quote.json";
 const IMAGE_FILE: &str = "daily-quote.png";
+const FAILED_REFRESH_RETRY_INTERVAL: Duration = Duration::from_secs(15 * 60);
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct DailyQuote {
@@ -16,6 +17,15 @@ pub struct DailyQuote {
     pub dateline: String,
     pub picture_url: Option<String>,
     pub local_image_path: Option<String>,
+}
+
+pub fn should_refresh(
+    quote_dateline: &str,
+    local_date: &str,
+    last_attempt_elapsed: Option<Duration>,
+) -> bool {
+    quote_dateline != local_date
+        && last_attempt_elapsed.is_none_or(|elapsed| elapsed >= FAILED_REFRESH_RETRY_INTERVAL)
 }
 
 #[derive(Deserialize)]
@@ -174,5 +184,33 @@ mod tests {
     fn rejects_empty_quote_content() {
         let invalid = r#"{"content":"","note":"空","dateline":"2026-06-24"}"#;
         assert!(parse_iciba_response(invalid).is_err());
+    }
+
+    #[test]
+    fn current_calendar_day_does_not_refresh_again() {
+        assert!(!should_refresh(
+            "2026-06-25",
+            "2026-06-25",
+            Some(Duration::from_secs(24 * 60 * 60))
+        ));
+    }
+
+    #[test]
+    fn stale_quote_refreshes_immediately_on_new_calendar_day() {
+        assert!(should_refresh("2026-06-24", "2026-06-25", None));
+    }
+
+    #[test]
+    fn failed_new_day_refresh_retries_after_fifteen_minutes() {
+        assert!(!should_refresh(
+            "2026-06-24",
+            "2026-06-25",
+            Some(Duration::from_secs(14 * 60 + 59))
+        ));
+        assert!(should_refresh(
+            "2026-06-24",
+            "2026-06-25",
+            Some(Duration::from_secs(15 * 60))
+        ));
     }
 }

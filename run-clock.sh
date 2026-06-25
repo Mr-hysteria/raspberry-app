@@ -14,6 +14,7 @@ export SLINT_FULLSCREEN="${SLINT_FULLSCREEN:-1}"
 # 关闭桌面环境的自动屏保，但保留 DPMS 供应用按时息屏。
 xset s off || true
 xset +dpms || true
+xset dpms 0 0 0 || true
 xset s noblank || true
 
 # 隐藏鼠标光标。

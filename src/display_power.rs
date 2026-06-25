@@ -2,18 +2,10 @@ use std::process::Command;
 
 const NIGHT_WAKE_SECONDS: u64 = 60;
 
+#[derive(Default)]
 pub struct DisplayPowerState {
     wake_until: Option<u64>,
-    screen_on: bool,
-}
-
-impl Default for DisplayPowerState {
-    fn default() -> Self {
-        Self {
-            wake_until: None,
-            screen_on: true,
-        }
-    }
+    screen_on: Option<bool>,
 }
 
 impl DisplayPowerState {
@@ -36,10 +28,10 @@ impl DisplayPowerState {
         }
 
         let desired = self.desired_screen_on(night_window, now_seconds);
-        if desired == self.screen_on {
+        if self.screen_on == Some(desired) {
             None
         } else {
-            self.screen_on = desired;
+            self.screen_on = Some(desired);
             Some(desired)
         }
     }
@@ -88,8 +80,19 @@ mod tests {
     fn daytime_always_requests_screen_on_and_clears_wake() {
         let mut state = DisplayPowerState::default();
         state.touch(true, 1_000);
-        assert!(state.reconcile(false, 1_010).is_none());
+        assert_eq!(state.reconcile(false, 1_010), Some(true));
         assert!(state.desired_screen_on(false, 2_000));
         assert!(state.wake_until().is_none());
+    }
+
+    #[test]
+    fn first_reconcile_always_applies_the_desired_power_state() {
+        let mut daytime = DisplayPowerState::default();
+        assert_eq!(daytime.reconcile(false, 1_000), Some(true));
+        assert_eq!(daytime.reconcile(false, 1_001), None);
+
+        let mut nighttime = DisplayPowerState::default();
+        assert_eq!(nighttime.reconcile(true, 1_000), Some(false));
+        assert_eq!(nighttime.reconcile(true, 1_001), None);
     }
 }

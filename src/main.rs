@@ -1,4 +1,6 @@
-use daily_quote::{default_cache_dir, fallback_quote, fetch_and_cache, load_cached, DailyQuote};
+use daily_quote::{
+    default_cache_dir, fallback_quote, fetch_and_cache, load_cached, should_refresh, DailyQuote,
+};
 use display_power::{apply_screen_power, DisplayPowerState};
 use domain::{days_until_cpa, is_night_screen_window, year_remaining_fraction};
 use std::cell::RefCell;
@@ -13,19 +15,17 @@ mod domain;
 
 slint::include_modules!();
 
-const QUOTE_REFRESH_INTERVAL: Duration = Duration::from_secs(24 * 60 * 60);
-
 struct AppState {
     display_power: DisplayPowerState,
     quote_sender: Sender<Result<DailyQuote, String>>,
     quote_receiver: Receiver<Result<DailyQuote, String>>,
     quote_fetch_in_progress: bool,
     last_quote_fetch: Option<Instant>,
-    last_quote_fetch_date: String,
+    active_quote_date: String,
 }
 
 impl AppState {
-    fn new() -> Self {
+    fn new(active_quote_date: String) -> Self {
         let (quote_sender, quote_receiver) = mpsc::channel();
         Self {
             display_power: DisplayPowerState::default(),
@@ -33,7 +33,7 @@ impl AppState {
             quote_receiver,
             quote_fetch_in_progress: false,
             last_quote_fetch: None,
-            last_quote_fetch_date: String::new(),
+            active_quote_date,
         }
     }
 }
@@ -57,9 +57,8 @@ fn main() -> Result<(), slint::PlatformError> {
     std::env::set_var("SLINT_FULLSCREEN", "1");
 
     let app = AppWindow::new()?;
-    let state = Rc::new(RefCell::new(AppState::new()));
-
     let cached_quote = load_cached(&default_cache_dir()).unwrap_or_else(fallback_quote);
+    let state = Rc::new(RefCell::new(AppState::new(cached_quote.dateline.clone())));
     apply_quote(&app, &cached_quote);
     install_touch_wake(&app, state.clone());
     refresh_window(&app, &state);
@@ -170,7 +169,9 @@ fn apply_quote_updates(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
         match update {
             Ok(Ok(quote)) => {
                 apply_quote(app, &quote);
-                state.borrow_mut().quote_fetch_in_progress = false;
+                let mut state_ref = state.borrow_mut();
+                state_ref.active_quote_date = quote.dateline;
+                state_ref.quote_fetch_in_progress = false;
             }
             Ok(Err(error)) => {
                 eprintln!("daily quote refresh failed: {error}");
@@ -186,10 +187,10 @@ fn apply_quote_updates(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
 }
 
 fn maybe_start_quote_fetch(state: &mut AppState, date_key: &str) {
-    let refresh_due = state.last_quote_fetch_date != date_key
-        || state
-            .last_quote_fetch
-            .is_none_or(|last_fetch| last_fetch.elapsed() >= QUOTE_REFRESH_INTERVAL);
+    let last_attempt_elapsed = state
+        .last_quote_fetch
+        .map(|last_fetch| last_fetch.elapsed());
+    let refresh_due = should_refresh(&state.active_quote_date, date_key, last_attempt_elapsed);
 
     if state.quote_fetch_in_progress || !refresh_due {
         return;
@@ -197,7 +198,6 @@ fn maybe_start_quote_fetch(state: &mut AppState, date_key: &str) {
 
     state.quote_fetch_in_progress = true;
     state.last_quote_fetch = Some(Instant::now());
-    state.last_quote_fetch_date = date_key.to_string();
     let sender = state.quote_sender.clone();
     let cache_dir = default_cache_dir();
 
