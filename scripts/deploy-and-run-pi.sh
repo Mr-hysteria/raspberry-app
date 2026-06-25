@@ -96,9 +96,12 @@ scp_cmd "${LOCAL_BINARY_PATH}" "${REMOTE_PROJECT_REF}:${REMOTE_BINARY_STAGING_PA
 
 echo "==> Replacing the running binary"
 ssh_cmd "${REMOTE_PROJECT_REF}" \
+    "pkill -KILL -f '[w]atch-clock.sh' >/dev/null 2>&1 || true"
+
+ssh_cmd "${REMOTE_PROJECT_REF}" \
     "chmod +x '${REMOTE_RUN_SCRIPT}' '${REMOTE_BOOTSTRAP_SCRIPT}' '${REMOTE_AUTOSTART_SCRIPT}' '${REMOTE_WATCH_SCRIPT}' '${REMOTE_BINARY_STAGING_PATH}'; \
-     if [ -f /tmp/${BINARY_NAME}-watch.pid ]; then kill \$(cat /tmp/${BINARY_NAME}-watch.pid) >/dev/null 2>&1 || true; fi; \
      pkill -x '${BINARY_NAME}' >/dev/null 2>&1 || true; \
+     rm -f /tmp/${BINARY_NAME}-watch.pid; \
      mv -f '${REMOTE_BINARY_STAGING_PATH}' '${REMOTE_BINARY_PATH}'"
 
 echo "==> Installing desktop autostart"

@@ -1,8 +1,7 @@
 export component AppWindow inherits Window {
     in-out property <string> time-text: "00:00";
     in-out property <string> seconds-text: "00";
-    in-out property <string> date-text: "0000年00月00日";
-    in-out property <string> weekday-text: "星期一";
+    in-out property <string> date-weekday-text: "0000年00月00日 · 星期一";
     in-out property <string> year-remaining-text: "今年还剩 0%";
     in-out property <float> year-remaining-progress: 0.0;
     in-out property <string> cpa-countdown-text: "还有 0 天";
@@ -35,16 +34,16 @@ export component AppWindow inherits Window {
             width: parent.width;
             height: parent.height;
             background: root.night-mode
-                ? @linear-gradient(90deg, #0b1110ee 0%, #0d1412b8 62%, #0d14128c 100%)
-                : @linear-gradient(90deg, #15201ddb 0%, #18241fa0 62%, #18241f72 100%);
+                ? @linear-gradient(90deg, #0d1513df 0%, #0d1412bf 62%, #0a100fe0 100%)
+                : @linear-gradient(90deg, #17231fcf 0%, #18241fa8 62%, #0c1311d0 100%);
         }
 
         Rectangle {
             x: 0;
             y: parent.height - 150px;
             width: parent.width;
-            height: 150px;
-            background: @linear-gradient(0deg, #080d0ccb 0%, #080d0c00 100%);
+            height: 160px;
+            background: @linear-gradient(0deg, #070b0ae8 0%, #080d0c00 100%);
         }
 
         Text {
@@ -61,14 +60,14 @@ export component AppWindow inherits Window {
         }
 
         Text {
-            x: 424px;
-            y: 91px;
-            width: 46px;
-            height: 40px;
+            x: 430px;
+            y: 72px;
+            width: 42px;
+            height: 34px;
             text: root.seconds-text;
-            color: #f8f5ee99;
+            color: #f8f5ee75;
             font-family: "Noto Serif CJK SC";
-            font-size: 27px;
+            font-size: 23px;
             horizontal-alignment: center;
             vertical-alignment: center;
         }
@@ -76,131 +75,99 @@ export component AppWindow inherits Window {
         Text {
             x: 64px;
             y: 192px;
-            width: 300px;
-            height: 30px;
-            text: root.date-text;
-            color: #f8f5eed4;
+            width: 420px;
+            height: 32px;
+            text: root.date-weekday-text;
+            color: #f8f5eee0;
             font-family: "WenQuanYi Zen Hei";
-            font-size: 22px;
-            vertical-alignment: center;
-        }
-
-        Text {
-            x: 64px;
-            y: 224px;
-            width: 160px;
-            height: 26px;
-            text: root.weekday-text;
-            color: #f8f5ee9e;
-            font-family: "WenQuanYi Zen Hei";
-            font-size: 17px;
+            font-size: 23px;
+            font-weight: 500;
             vertical-alignment: center;
         }
 
         Rectangle {
-            x: parent.width - 268px;
-            y: 42px;
-            width: 210px;
+            x: parent.width - 270px;
+            y: 44px;
+            width: 220px;
+            height: 102px;
+            border-radius: 18px;
+            background: #080d0cdd;
+            border-color: #ffffff38;
+            border-width: 2px;
+
+            Text {
+                x: 20px;
+                y: 14px;
+                width: parent.width - 40px;
+                height: 50px;
+                text: root.year-remaining-text;
+                color: #fffdf7;
+                font-family: "WenQuanYi Zen Hei";
+                font-size: 28px;
+                font-weight: 700;
+                vertical-alignment: center;
+            }
+
+            Rectangle {
+                x: 20px;
+                y: 78px;
+                width: parent.width - 40px;
+                height: 7px;
+                border-radius: 4px;
+                background: #ffffff38;
+            }
+
+            Rectangle {
+                x: 20px;
+                y: 78px;
+                width: (parent.width - 40px) * root.year-remaining-progress;
+                height: 7px;
+                border-radius: 4px;
+                background: #f1d899;
+            }
+        }
+
+        Rectangle {
+            x: parent.width - 270px;
+            y: 158px;
+            width: 220px;
             height: 112px;
             border-radius: 18px;
-            background: #121a18a8;
-            border-color: #ffffff22;
-            border-width: 1px;
+            background: #080d0cdd;
+            border-color: #ffffff38;
+            border-width: 2px;
 
             Text {
-                x: 18px;
-                y: 14px;
-                width: parent.width - 36px;
-                height: 24px;
-                text: "年度倒计时";
-                color: #f8f5ee99;
-                font-family: "WenQuanYi Zen Hei";
-                font-size: 17px;
-            }
-
-            Text {
-                x: 18px;
-                y: 41px;
-                width: parent.width - 36px;
-                height: 35px;
-                text: root.year-remaining-text;
-                color: #f8f5ee;
-                font-family: "WenQuanYi Zen Hei";
-                font-size: 23px;
-                font-weight: 500;
-                vertical-alignment: center;
-            }
-
-            Rectangle {
-                x: 18px;
-                y: 92px;
-                width: parent.width - 36px;
-                height: 4px;
-                border-radius: 2px;
-                background: #ffffff26;
-            }
-
-            Rectangle {
-                x: 18px;
-                y: 92px;
-                width: (parent.width - 36px) * root.year-remaining-progress;
-                height: 4px;
-                border-radius: 2px;
-                background: #dbc99f;
-            }
-        }
-
-        Rectangle {
-            x: parent.width - 268px;
-            y: 166px;
-            width: 210px;
-            height: 116px;
-            border-radius: 18px;
-            background: #121a18a8;
-            border-color: #ffffff22;
-            border-width: 1px;
-
-            Text {
-                x: 18px;
+                x: 20px;
                 y: 12px;
-                width: parent.width - 36px;
-                height: 25px;
-                text: "CPA 考试倒计时";
-                color: #f8f5ee99;
-                font-family: "WenQuanYi Zen Hei";
-                font-size: 17px;
-            }
-
-            Text {
-                x: 18px;
-                y: 39px;
-                width: parent.width - 36px;
-                height: 38px;
+                width: parent.width - 40px;
+                height: 49px;
                 text: root.cpa-countdown-text;
-                color: #f8f5ee;
+                color: #fffdf7;
                 font-family: "WenQuanYi Zen Hei";
-                font-size: 25px;
-                font-weight: 500;
+                font-size: 28px;
+                font-weight: 700;
                 vertical-alignment: center;
             }
 
             Text {
-                x: 18px;
-                y: 82px;
-                width: parent.width - 36px;
-                height: 24px;
+                x: 20px;
+                y: 66px;
+                width: parent.width - 40px;
+                height: 28px;
                 text: root.cpa-date-text;
-                color: #f8f5ee85;
+                color: #f8f5eed0;
                 font-family: "WenQuanYi Zen Hei";
-                font-size: 16px;
+                font-size: 18px;
+                font-weight: 500;
             }
         }
 
         Text {
             x: 64px;
-            y: parent.height - 120px;
-            width: parent.width - 128px;
-            height: 48px;
+            y: parent.height - 126px;
+            width: parent.width * 0.72;
+            height: 54px;
             text: root.quote-english;
             color: #f8f5eef2;
             font-family: "Noto Serif CJK SC";
@@ -212,13 +179,13 @@ export component AppWindow inherits Window {
 
         Text {
             x: 64px;
-            y: parent.height - 70px;
-            width: parent.width - 128px;
-            height: 38px;
+            y: parent.height - 66px;
+            width: parent.width * 0.72;
+            height: 34px;
             text: root.quote-chinese;
             color: #f8f5eeb5;
             font-family: "WenQuanYi Zen Hei";
-            font-size: 24px;
+            font-size: 21px;
             vertical-alignment: top;
             wrap: word-wrap;
         }

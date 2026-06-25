@@ -41,8 +41,7 @@ impl AppState {
 struct ClockSnapshot {
     time_text: String,
     seconds_text: String,
-    date_text: String,
-    weekday_text: String,
+    date_weekday_text: String,
     year_remaining_text: String,
     year_remaining_progress: f32,
     cpa_countdown_text: String,
@@ -109,12 +108,11 @@ fn refresh_window(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
 
     app.set_time_text(snapshot.time_text.into());
     app.set_seconds_text(snapshot.seconds_text.into());
-    app.set_date_text(snapshot.date_text.into());
-    app.set_weekday_text(snapshot.weekday_text.into());
+    app.set_date_weekday_text(snapshot.date_weekday_text.into());
     app.set_year_remaining_text(snapshot.year_remaining_text.into());
     app.set_year_remaining_progress(snapshot.year_remaining_progress);
     app.set_cpa_countdown_text(snapshot.cpa_countdown_text.into());
-    app.set_cpa_date_text("考试日期 · 8月29日".into());
+    app.set_cpa_date_text("CPA · 8月29日".into());
     app.set_night_mode(snapshot.night_mode);
 
     let transition = {
@@ -147,11 +145,13 @@ fn read_clock_snapshot() -> Option<ClockSnapshot> {
     Some(ClockSnapshot {
         time_text: format!("{hour:02}:{minute:02}"),
         seconds_text: format!("{second:02}"),
-        date_text: format!("{year:04}年{month:02}月{day:02}日"),
-        weekday_text: weekday_name(local_time.tm_wday).to_string(),
+        date_weekday_text: format!(
+            "{year:04}年{month:02}月{day:02}日 · {}",
+            weekday_name(local_time.tm_wday)
+        ),
         year_remaining_text: format!("今年还剩 {:.0}%", year_remaining * 100.0),
         year_remaining_progress: year_remaining,
-        cpa_countdown_text: format!("还有 {cpa_days} 天"),
+        cpa_countdown_text: format!("CPA 还有 {cpa_days} 天"),
         night_mode: !(6..18).contains(&hour),
         night_window: is_night_screen_window(hour, minute),
         timestamp,
