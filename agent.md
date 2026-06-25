@@ -23,6 +23,7 @@
   - 中文字体显示
   - `800x480` 小屏布局适配
   - 树莓派初始化脚本与运行脚本
+  - LightDM/LXDE 桌面会话自动启动
 - 当前主线：
   - 保持程序在低内存设备上的稳定运行
   - 继续优化 UI、部署体验和可维护性
@@ -104,6 +105,9 @@ scripts/bootstrap-pi.sh 树莓派依赖安装与首次构建
 - `run-clock.sh`
   - 负责关闭屏保、关闭 DPMS、隐藏鼠标、避免重复启动
   - 优先运行 `release`，回退到 `debug`
+- `scripts/install-autostart.sh`
+  - 安装 `~/.config/autostart/raspberry-clock.desktop`
+  - 在桌面自动登录后启动 `run-clock.sh`
 
 ## 5. 关键约束
 

@@ -15,6 +15,28 @@
 
 ---
 
+## 2026-06-25 - 开机自动启动
+
+### 目标
+
+- 树莓派重启并自动登录桌面后，无需 SSH 即可启动时钟
+
+### 完成项
+
+- 新增 LXDE 标准桌面自启动安装脚本
+- 初始化脚本完成构建后自动安装自启动项
+- 部署脚本每次部署时同步并修复自启动项
+- 新增自启动配置生成测试
+
+### 影响范围
+
+- `scripts/install-autostart.sh`
+- `scripts/bootstrap-pi.sh`
+- `scripts/deploy-and-run-pi.sh`
+- `tests/install-autostart.sh`
+
+---
+
 ## 2026-06-25 - 常亮与每日刷新修复
 
 ### 目标

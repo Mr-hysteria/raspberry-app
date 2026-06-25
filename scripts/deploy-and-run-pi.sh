@@ -20,12 +20,14 @@ REMOTE_GIT_PULL="${PI_REMOTE_GIT_PULL:-0}"
 LOCAL_BINARY_PATH="${PROJECT_DIR}/target/${TARGET_TRIPLE}/release/${BINARY_NAME}"
 LOCAL_RUN_SCRIPT="${PROJECT_DIR}/run-clock.sh"
 LOCAL_BOOTSTRAP_SCRIPT="${PROJECT_DIR}/scripts/bootstrap-pi.sh"
+LOCAL_AUTOSTART_SCRIPT="${PROJECT_DIR}/scripts/install-autostart.sh"
 
 REMOTE_BINARY_DIR="${REMOTE_PROJECT_DIR}/target/release"
 REMOTE_BINARY_PATH="${REMOTE_BINARY_DIR}/${BINARY_NAME}"
 REMOTE_BINARY_STAGING_PATH="${REMOTE_BINARY_PATH}.new"
 REMOTE_RUN_SCRIPT="${REMOTE_PROJECT_DIR}/run-clock.sh"
 REMOTE_BOOTSTRAP_SCRIPT="${REMOTE_PROJECT_DIR}/scripts/bootstrap-pi.sh"
+REMOTE_AUTOSTART_SCRIPT="${REMOTE_PROJECT_DIR}/scripts/install-autostart.sh"
 
 if [[ -n "${PI_SSH_HOST:-}" ]]; then
     REMOTE_PROJECT_REF="${REMOTE_SSH_HOST}"
@@ -84,15 +86,19 @@ fi
 echo "==> Syncing runtime scripts"
 scp_cmd "${LOCAL_RUN_SCRIPT}" "${REMOTE_PROJECT_REF}:${REMOTE_RUN_SCRIPT}"
 scp_cmd "${LOCAL_BOOTSTRAP_SCRIPT}" "${REMOTE_PROJECT_REF}:${REMOTE_BOOTSTRAP_SCRIPT}"
+scp_cmd "${LOCAL_AUTOSTART_SCRIPT}" "${REMOTE_PROJECT_REF}:${REMOTE_AUTOSTART_SCRIPT}"
 
 echo "==> Uploading binary"
 scp_cmd "${LOCAL_BINARY_PATH}" "${REMOTE_PROJECT_REF}:${REMOTE_BINARY_STAGING_PATH}"
 
 echo "==> Replacing the running binary"
 ssh_cmd "${REMOTE_PROJECT_REF}" \
-    "chmod +x '${REMOTE_RUN_SCRIPT}' '${REMOTE_BOOTSTRAP_SCRIPT}' '${REMOTE_BINARY_STAGING_PATH}'; \
+    "chmod +x '${REMOTE_RUN_SCRIPT}' '${REMOTE_BOOTSTRAP_SCRIPT}' '${REMOTE_AUTOSTART_SCRIPT}' '${REMOTE_BINARY_STAGING_PATH}'; \
      pkill -x '${BINARY_NAME}' >/dev/null 2>&1 || true; \
      mv -f '${REMOTE_BINARY_STAGING_PATH}' '${REMOTE_BINARY_PATH}'"
+
+echo "==> Installing desktop autostart"
+ssh_cmd "${REMOTE_PROJECT_REF}" "'${REMOTE_AUTOSTART_SCRIPT}'"
 
 echo "==> Starting app on Raspberry Pi"
 ssh_cmd "${REMOTE_PROJECT_REF}" "

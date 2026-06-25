@@ -76,6 +76,22 @@ cd /home/raspberry/Desktop/code/raspberry-app
 3. 优先启动 target/release/raspberry-clock
 4. 若 release 不存在，则自动启动 target/debug/raspberry-clock
 5. 使用 Slint software renderer 全屏显示
+
+## 开机自动启动
+
+初始化脚本和部署脚本都会安装桌面自启动项：
+
+```text
+~/.config/autostart/raspberry-clock.desktop
+```
+
+LightDM 自动登录进入 LXDE 桌面后，会自动执行项目中的 `run-clock.sh`，无需再通过 SSH 手动启动。
+
+也可以单独安装或修复自启动配置：
+
+```bash
+./scripts/install-autostart.sh
+```
 ```
 
 如果你在 Mac 本地开发并希望一键交叉编译、上传并远程启动，可以在仓库根目录执行：
@@ -111,6 +127,7 @@ PI_REMOTE_GIT_PULL=1 ./scripts/deploy-and-run-pi.sh
 - 中文字体显示
 - 针对 `800x480` 小屏布局优化
 - 软件渲染，无需 GPU 加速
+- LightDM/LXDE 桌面登录后自动启动
 
 ## 可清理的旧方案
 
