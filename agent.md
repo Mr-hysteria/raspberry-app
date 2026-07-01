@@ -96,7 +96,7 @@ scripts/bootstrap-pi.sh 树莓派依赖安装与首次构建
 - `src/domain.rs`
   - 计算年度剩余、CPA 倒计时和夜间息屏区间
 - `src/daily_quote.rs`
-  - 请求金山词霸每日一句并维护本地 JSON/PNG 缓存
+  - 请求金山词霸每日一句并维护本地 JSON/图片缓存
 - `src/display_power.rs`
   - 管理夜间触摸唤醒状态并调用 X11 DPMS
 - `ui/clock.slint`
@@ -118,6 +118,7 @@ scripts/bootstrap-pi.sh 树莓派依赖安装与首次构建
 - 默认渲染路径是 `Slint software renderer`，不要假设 GPU 加速存在。
 - 每日一句请求必须在后台线程运行，不能阻塞每秒时钟刷新。
 - 夜间息屏依赖 X11 的 `xset dpms force on/off`，部署环境必须保留 `x11-xserver-utils`。
+- Debian 13 当前安装的是经典版 `unclutter` 8.x，只接受 `-idle`、`-jitter`、`-root` 等单横线参数；不要使用 `unclutter-xfixes` 的 `--timeout`、`--fork` 等长参数，否则进程会打印 usage 后退出，鼠标光标不会隐藏。
 - UI 修改必须考虑 `800x480` 屏幕，不要只按桌面显示器效果判断。
 - 启动脚本承担现场运行职责，改动时要特别注意：
   - 是否影响 X11 环境变量

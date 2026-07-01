@@ -188,6 +188,14 @@ cd /home/raspberry/Desktop/code/raspberry-app
 - 杀掉已有的旧进程，避免重复启动
 - 全屏运行 `target/release/raspberry-clock`
 
+当前 Debian 13 安装的是经典版 `unclutter` 8.x，启动参数必须使用：
+
+```bash
+unclutter -idle 1 -jitter 1 -root
+```
+
+不要改成 `--timeout`、`--jitter`、`--fork`。这些是 `unclutter-xfixes` 风格参数，经典版收到后会直接退出，导致鼠标光标一直显示。可通过 `pgrep -af unclutter` 确认隐藏进程是否存活。
+
 ---
 
 ## 3. 关闭程序

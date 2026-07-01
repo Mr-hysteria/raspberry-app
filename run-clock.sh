@@ -20,7 +20,7 @@ xset s noblank || true
 # 隐藏鼠标光标。
 if command -v unclutter >/dev/null 2>&1; then
     pkill -x unclutter >/dev/null 2>&1 || true
-    unclutter --timeout 0 --jitter 1 --fork >/dev/null 2>&1 || true
+    unclutter -idle 1 -jitter 1 -root >/dev/null 2>&1 &
 fi
 
 # 避免重复打开多个时钟窗口。
