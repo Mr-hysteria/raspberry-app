@@ -57,8 +57,11 @@ fn main() -> Result<(), slint::PlatformError> {
 
     let app = AppWindow::new()?;
     let cached_quote = load_cached(&default_cache_dir()).unwrap_or_else(fallback_quote);
-    let state = Rc::new(RefCell::new(AppState::new(cached_quote.dateline.clone())));
-    apply_quote(&app, &cached_quote);
+    let image_loaded = apply_quote(&app, &cached_quote);
+    let state = Rc::new(RefCell::new(AppState::new(refresh_date_after_apply(
+        &cached_quote,
+        image_loaded,
+    ))));
     install_touch_wake(&app, state.clone());
     refresh_window(&app, &state);
     start_clock_timer(&app, state);
@@ -168,9 +171,9 @@ fn apply_quote_updates(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
 
         match update {
             Ok(Ok(quote)) => {
-                apply_quote(app, &quote);
+                let image_loaded = apply_quote(app, &quote);
                 let mut state_ref = state.borrow_mut();
-                state_ref.active_quote_date = quote.dateline;
+                state_ref.active_quote_date = refresh_date_after_apply(&quote, image_loaded);
                 state_ref.quote_fetch_in_progress = false;
             }
             Ok(Err(error)) => {
@@ -207,7 +210,7 @@ fn maybe_start_quote_fetch(state: &mut AppState, date_key: &str) {
     });
 }
 
-fn apply_quote(app: &AppWindow, quote: &DailyQuote) {
+fn apply_quote(app: &AppWindow, quote: &DailyQuote) -> bool {
     app.set_quote_english(quote.content.clone().into());
     app.set_quote_chinese(quote.note.clone().into());
 
@@ -216,9 +219,19 @@ fn apply_quote(app: &AppWindow, quote: &DailyQuote) {
         .as_deref()
         .filter(|path| Path::new(path).exists())
         .and_then(|path| slint::Image::load_from_path(Path::new(path)).ok());
+    let image_loaded = image.is_some();
 
-    app.set_has_background_image(image.is_some());
+    app.set_has_background_image(image_loaded);
     app.set_background_image(image.unwrap_or_default());
+    image_loaded
+}
+
+fn refresh_date_after_apply(quote: &DailyQuote, image_loaded: bool) -> String {
+    if quote.picture_url.is_none() || image_loaded {
+        quote.dateline.clone()
+    } else {
+        String::new()
+    }
 }
 
 fn unix_timestamp() -> u64 {
@@ -248,5 +261,30 @@ fn weekday_name(weekday: i32) -> &'static str {
         4 => "星期四",
         5 => "星期五",
         _ => "星期六",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn quote_with_picture_is_not_current_until_image_loads() {
+        let quote = DailyQuote {
+            content: "Today".to_string(),
+            note: "今天".to_string(),
+            dateline: "2026-07-01".to_string(),
+            picture_url: Some("https://example.com/today.jpg".to_string()),
+            local_image_path: Some("/invalid/cache.png".to_string()),
+        };
+
+        assert_eq!(refresh_date_after_apply(&quote, false), "");
+        assert_eq!(refresh_date_after_apply(&quote, true), "2026-07-01");
+    }
+
+    #[test]
+    fn quote_without_picture_is_current_without_an_image() {
+        let quote = fallback_quote();
+        assert_eq!(refresh_date_after_apply(&quote, false), quote.dateline);
     }
 }
