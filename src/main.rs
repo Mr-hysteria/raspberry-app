@@ -22,8 +22,13 @@ struct AppState {
     reading_sender: Sender<Result<DailyReading, String>>,
     reading_receiver: Receiver<Result<DailyReading, String>>,
     reading_fetch_in_progress: bool,
-    last_reading_fetch: Option<Instant>,
+    last_reading_fetch: Option<ReadingFetchAttempt>,
     active_reading_date: String,
+}
+
+struct ReadingFetchAttempt {
+    date_key: String,
+    started_at: Instant,
 }
 
 impl AppState {
@@ -196,9 +201,9 @@ fn apply_reading_updates(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
 }
 
 fn maybe_start_reading_fetch(state: &mut AppState, date_key: &str) {
-    let last_attempt_elapsed = state
-        .last_reading_fetch
-        .map(|last_fetch| last_fetch.elapsed());
+    let now = Instant::now();
+    let last_attempt_elapsed =
+        elapsed_for_attempt_on_date(date_key, state.last_reading_fetch.as_ref(), now);
     let refresh_due = should_refresh(&state.active_reading_date, date_key, last_attempt_elapsed);
 
     if state.reading_fetch_in_progress || !refresh_due {
@@ -206,7 +211,10 @@ fn maybe_start_reading_fetch(state: &mut AppState, date_key: &str) {
     }
 
     state.reading_fetch_in_progress = true;
-    state.last_reading_fetch = Some(Instant::now());
+    state.last_reading_fetch = Some(ReadingFetchAttempt {
+        date_key: date_key.to_string(),
+        started_at: now,
+    });
     let sender = state.reading_sender.clone();
     let cache_dir = default_cache_dir();
     let local_date = date_key.to_string();
@@ -215,6 +223,16 @@ fn maybe_start_reading_fetch(state: &mut AppState, date_key: &str) {
         let result = fetch_and_cache(&cache_dir, &local_date).map_err(|error| error.to_string());
         let _ = sender.send(result);
     });
+}
+
+fn elapsed_for_attempt_on_date(
+    date_key: &str,
+    attempt: Option<&ReadingFetchAttempt>,
+    now: Instant,
+) -> Option<Duration> {
+    attempt
+        .filter(|attempt| attempt.date_key == date_key)
+        .and_then(|attempt| now.checked_duration_since(attempt.started_at))
 }
 
 fn apply_reading(app: &AppWindow, reading: &DailyReading) {
@@ -297,6 +315,25 @@ mod tests {
         };
 
         assert_eq!(active_date_after_apply(&reading), "2026-08-30");
+    }
+
+    #[test]
+    fn prior_date_attempt_never_throttles_a_new_calendar_date() {
+        let started_at = Instant::now();
+        let attempt = ReadingFetchAttempt {
+            date_key: "2026-08-30".to_string(),
+            started_at,
+        };
+        let one_second_after_midnight = started_at + Duration::from_secs(1);
+
+        let new_date_elapsed =
+            elapsed_for_attempt_on_date("2026-08-31", Some(&attempt), one_second_after_midnight);
+        assert_eq!(new_date_elapsed, None);
+        assert!(should_refresh("2026-08-30", "2026-08-31", new_date_elapsed));
+        assert_eq!(
+            elapsed_for_attempt_on_date("2026-08-30", Some(&attempt), one_second_after_midnight),
+            Some(Duration::from_secs(1))
+        );
     }
 
     #[test]

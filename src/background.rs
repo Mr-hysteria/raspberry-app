@@ -155,22 +155,35 @@ mod tests {
 
     #[test]
     fn all_scene_colors_are_opaque_or_intentionally_translucent() {
-        let scene = background_for_date("2026-08-30", false);
-
-        assert_eq!(scene.canvas.a, 255);
-        assert_eq!(scene.text_primary.a, 255);
-        assert_eq!(scene.text_muted.a, 255);
-        assert_eq!(scene.accent.a, 255);
-        assert!((20..=96).contains(&scene.wash_primary.a));
-        assert!((20..=96).contains(&scene.wash_secondary.a));
+        for (mode, scenes) in [("day", &DAY_SCENES), ("night", &NIGHT_SCENES)] {
+            for (index, scene) in scenes.iter().enumerate() {
+                assert_eq!(scene.canvas.a, 255, "{mode} scene {index} canvas");
+                assert_eq!(
+                    scene.text_primary.a, 255,
+                    "{mode} scene {index} primary text"
+                );
+                assert_eq!(scene.text_muted.a, 255, "{mode} scene {index} muted text");
+                assert_eq!(scene.accent.a, 255, "{mode} scene {index} accent");
+                assert!(
+                    (20..=96).contains(&scene.wash_primary.a),
+                    "{mode} scene {index} primary wash"
+                );
+                assert!(
+                    (20..=96).contains(&scene.wash_secondary.a),
+                    "{mode} scene {index} secondary wash"
+                );
+            }
+        }
     }
 
     #[test]
     fn night_canvas_is_darker_than_day_canvas() {
-        let day = background_for_date("2026-08-30", false);
-        let night = background_for_date("2026-08-30", true);
-
-        assert!(luminance(night.canvas) < luminance(day.canvas));
+        for (index, (day, night)) in DAY_SCENES.iter().zip(NIGHT_SCENES.iter()).enumerate() {
+            assert!(
+                luminance(night.canvas) < luminance(day.canvas),
+                "night scene {index} must be darker than its day pair"
+            );
+        }
     }
 
     #[test]

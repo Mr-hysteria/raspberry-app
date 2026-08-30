@@ -57,18 +57,18 @@
 - `reading_sender`
 - `reading_receiver`
 - `reading_fetch_in_progress`
-- `last_reading_fetch`
+- `last_reading_fetch`（上次尝试的 `date_key` 与 `Instant`）
 - `active_reading_date`
 
 每次刷新窗口时，`maybe_start_reading_fetch()` 会根据三个条件决定是否发起请求：
 
 - 当前没有正在进行的请求
 - 已显示内容的 `fetched_for_date` 不等于今天
-- 距离上次失败尝试至少过去 `15` 分钟
+- 今天没有失败尝试，或今天的上次失败尝试已经过去至少 `15` 分钟；前一日期的尝试不会限制新日期立即刷新
 
 一旦需要刷新：
 
-1. UI 线程记录 `last_reading_fetch = Instant::now()`。
+1. UI 线程把当前 `date_key` 与 `Instant::now()` 一起记录到 `last_reading_fetch`。
 2. 复制 `Sender`、缓存目录和 `local_date`。
 3. `std::thread::spawn` 启动后台线程。
 4. 后台线程调用 `fetch_and_cache()`，成功或失败都通过 `mpsc` 发回结果。
@@ -88,6 +88,8 @@
 
 对本地日期字符串 `YYYY-MM-DD` 做 64 位 FNV-1a 哈希，再对路由数量取模，得到当天唯一分类。这样同一天重启不会切换分类，不同日期又会自然轮换。
 
+响应正文最多读取 `64 KiB`。读取器会额外探测第 `65,537` 个字节；只要该字节存在就拒绝整个响应，而不是把截断内容交给 JSON 解析。
+
 响应进入展示前必须通过四层过滤：
 
 1. `content` 非空
@@ -98,7 +100,12 @@
 之后还要满足：
 
 - `content.trim().chars().count() <= 40`
+- `origin.trim().chars().count() <= 80`
+- `author.trim().chars().count() <= 40`
+- `category.trim().chars().count() <= 80`
 - 不包含负向词列表中的关键词
+
+这些上限都按 Unicode 字符计数：作品名和分类仍保留足够余量，同时为 `current`、`previous` 两个缓存槽建立明确边界。
 
 不满足时，函数返回错误，调用方继续保留当前显示内容。
 
@@ -130,6 +137,8 @@
 3. `fs::rename()` 覆盖正式文件
 
 因此失败写入不会破坏上一份可用缓存。
+
+JSON 原子提交成功后才定点清理已知旧缓存名。清理失败会记录包含具体路径的错误，但不会把已提交的新阅读结果改判为失败；其他文件不会被递归、通配或顺带删除。
 
 ## 7. 程序化背景链路
 
@@ -211,6 +220,8 @@ DPMS 具体命令由 `src/display_power.rs` 执行：
 ## 10. 预览与人工验视
 
 `examples/render-preview.rs` 复用真实 `AppWindow`，用固定示例数据生成三种状态截图。它还通过测试锁定预览字体默认值为 `WenQuanYi Zen Hei`。
+
+完整仓库验证必须显式运行 `cargo test --example render-preview`；普通 `cargo test` 不包含 example 内的单元测试。
 
 `scripts/render-previews.sh` 的职责是：
 

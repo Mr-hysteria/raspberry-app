@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::Path;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -9,7 +9,13 @@ use std::time::Duration;
 const CACHE_FILE: &str = "daily-reading.json";
 const CACHE_VERSION: u8 = 1;
 const FAILED_REFRESH_RETRY_INTERVAL: Duration = Duration::from_secs(15 * 60);
+const MAX_RESPONSE_BODY_BYTES: usize = 64 * 1024;
 const MAX_CONTENT_CHARS: usize = 40;
+// Metadata budgets are Unicode-character limits. They preserve long work/category names while
+// bounding both persisted cache slots independently of UTF-8 byte width.
+const MAX_ORIGIN_CHARS: usize = 80;
+const MAX_AUTHOR_CHARS: usize = 40;
+const MAX_CATEGORY_CHARS: usize = 80;
 const ENDPOINTS: [&str; 5] = [
     "https://v1.jinrishici.com/rensheng/dushu.json",
     "https://v1.jinrishici.com/rensheng/zheli.json",
@@ -108,11 +114,34 @@ pub fn fetch_and_cache(
         .timeout_read(Duration::from_secs(12))
         .build();
     let response = agent.get(&endpoint_for_date(local_date)).call()?;
-    let json = response.into_string()?;
+    let json = read_response_body(response.into_reader())?;
     let reading = parse_response(&json, local_date)?;
     let updated = update_cache(cache, reading.clone());
-    write_cache_atomic(cache_dir, &updated)?;
-    cleanup_legacy_cache(cache_dir)?;
+    persist_reading_and_cleanup(cache_dir, &updated, reading)
+}
+
+fn read_response_body(reader: impl Read) -> Result<String, Box<dyn Error + Send + Sync>> {
+    let mut body = Vec::with_capacity(MAX_RESPONSE_BODY_BYTES + 1);
+    reader
+        .take((MAX_RESPONSE_BODY_BYTES + 1) as u64)
+        .read_to_end(&mut body)?;
+    if body.len() > MAX_RESPONSE_BODY_BYTES {
+        return Err(
+            format!("daily reading response exceeds {MAX_RESPONSE_BODY_BYTES} bytes").into(),
+        );
+    }
+    Ok(String::from_utf8(body)?)
+}
+
+fn persist_reading_and_cleanup(
+    cache_dir: &Path,
+    cache: &ReadingCache,
+    reading: DailyReading,
+) -> Result<DailyReading, Box<dyn Error + Send + Sync>> {
+    write_cache_atomic(cache_dir, cache)?;
+    if let Err(error) = cleanup_legacy_cache(cache_dir) {
+        eprintln!("daily reading cache committed, but legacy cache cleanup failed: {error}");
+    }
     Ok(reading)
 }
 
@@ -123,9 +152,9 @@ fn parse_response(
     let response: JinrishiciResponse = serde_json::from_str(json)?;
     let reading = DailyReading {
         content: required_field("content", response.content)?,
-        origin: required_field("origin", response.origin)?,
-        author: required_field("author", response.author)?,
-        category: required_field("category", response.category)?,
+        origin: required_metadata("origin", response.origin, MAX_ORIGIN_CHARS)?,
+        author: required_metadata("author", response.author, MAX_AUTHOR_CHARS)?,
+        category: required_metadata("category", response.category, MAX_CATEGORY_CHARS)?,
         fetched_for_date: local_date.to_string(),
     };
 
@@ -159,6 +188,19 @@ fn required_field(
         Err(format!("daily reading response missing {field_name}").into())
     } else {
         Ok(trimmed.to_string())
+    }
+}
+
+fn required_metadata(
+    field_name: &'static str,
+    value: String,
+    max_chars: usize,
+) -> Result<String, Box<dyn Error + Send + Sync>> {
+    let value = required_field(field_name, value)?;
+    if value.chars().count() > max_chars {
+        Err(format!("daily reading {field_name} exceeds {max_chars} Unicode characters").into())
+    } else {
+        Ok(value)
     }
 }
 
@@ -213,20 +255,31 @@ fn cleanup_legacy_cache(cache_dir: &Path) -> std::io::Result<()> {
         candidates.push(format!("daily-quote.previous.{extension}"));
     }
 
+    let mut failures = Vec::new();
     for candidate in candidates {
-        match fs::remove_file(cache_dir.join(candidate)) {
+        let path = cache_dir.join(candidate);
+        match fs::remove_file(&path) {
             Ok(()) => {}
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(error) => return Err(error),
+            Err(error) => failures.push(format!("{}: {error}", path.display())),
         }
     }
-    Ok(())
+
+    if failures.is_empty() {
+        Ok(())
+    } else {
+        Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            failures.join("; "),
+        ))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::fs;
+    use std::io::Cursor;
     use std::path::PathBuf;
     use std::time::Duration;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -311,6 +364,54 @@ mod tests {
     #[test]
     fn accepts_calm_reading_content() {
         assert!(content_is_suitable("幼敏悟过人，读书辄成诵。"));
+    }
+
+    #[test]
+    fn rejects_response_when_the_sixty_five_thousand_five_hundred_thirty_seventh_byte_exists() {
+        let body = vec![b'x'; 65_537];
+
+        let error = read_response_body(Cursor::new(body)).expect_err("body must be rejected");
+
+        assert_eq!(
+            error.to_string(),
+            "daily reading response exceeds 65536 bytes"
+        );
+    }
+
+    #[test]
+    fn rejects_each_oversized_metadata_field_by_unicode_character_count() {
+        let cases = [
+            (
+                "origin",
+                format!(
+                    r#"{{"content":"幼敏悟过人，读书辄成诵。","origin":"{}","author":"欧阳修","category":"古诗文-人生-读书"}}"#,
+                    "卷".repeat(81)
+                ),
+                "daily reading origin exceeds 80 Unicode characters",
+            ),
+            (
+                "author",
+                format!(
+                    r#"{{"content":"幼敏悟过人，读书辄成诵。","origin":"画地学书","author":"{}","category":"古诗文-人生-读书"}}"#,
+                    "欧".repeat(41)
+                ),
+                "daily reading author exceeds 40 Unicode characters",
+            ),
+            (
+                "category",
+                format!(
+                    r#"{{"content":"幼敏悟过人，读书辄成诵。","origin":"画地学书","author":"欧阳修","category":"{}"}}"#,
+                    "类".repeat(81)
+                ),
+                "daily reading category exceeds 80 Unicode characters",
+            ),
+        ];
+
+        for (field, json, expected_error) in cases {
+            let error = parse_response(&json, "2026-08-30")
+                .expect_err("oversized metadata must be rejected");
+            assert_eq!(error.to_string(), expected_error, "wrong error for {field}");
+        }
     }
 
     #[test]
@@ -512,6 +613,31 @@ mod tests {
         for kept in ["unrelated.txt", "daily-reading.json"] {
             assert!(cache_dir.join(kept).exists(), "{kept} should remain");
         }
+
+        fs::remove_dir_all(cache_dir).unwrap();
+    }
+
+    #[test]
+    fn committed_reading_succeeds_when_known_legacy_candidate_is_undeletable() {
+        let cache_dir = unique_test_cache_dir();
+        fs::create_dir_all(cache_dir.join("daily-quote.json")).unwrap();
+        fs::write(cache_dir.join("daily-quote.png"), b"legacy").unwrap();
+        fs::write(cache_dir.join("unrelated.txt"), b"keep me").unwrap();
+        let new_reading = reading("2026-08-31", "一寸光阴一寸金。");
+        let updated = update_cache(ReadingCache::default(), new_reading.clone());
+
+        let result = persist_reading_and_cleanup(&cache_dir, &updated, new_reading.clone());
+
+        assert_eq!(
+            result.expect("committed reading stays successful"),
+            new_reading
+        );
+        assert_eq!(load_cache(&cache_dir), updated);
+        assert_eq!(
+            fs::read(cache_dir.join("unrelated.txt")).unwrap(),
+            b"keep me"
+        );
+        assert!(!cache_dir.join("daily-quote.png").exists());
 
         fs::remove_dir_all(cache_dir).unwrap();
     }

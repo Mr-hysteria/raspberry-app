@@ -29,11 +29,16 @@
 - 用程序化背景替代远程图片依赖
 - 新增白天轻触开始仪式，并保留夜间 `23:30–07:00` DPMS 息屏与 `60` 秒触摸唤醒
 - 新增 `docs/architecture.md`，并同步更新入口文档、PRD、决策记录和开发 SOP
+- 最终复审将失败重试时间与尝试日期绑定，跨过本地午夜后不会沿用前一天的 `15` 分钟冷却
+- 今日诗词响应正文限制为 `64 KiB`，并为作品名 `80`、作者 `40`、分类 `80` 个 Unicode 字符设置缓存边界
+- `daily-reading.json` 原子提交后，旧缓存定点清理改为记录错误但保持本次阅读成功；不扩大删除目标
+- 背景测试覆盖全部四套日间、四套夜间色板及四组明暗关系
+- 移除 Slint 直接依赖中冗余的 `software-renderer-systemfonts`，系统字体能力仍由 winit/software renderer 特性链启用
 
 ### 当前可引用证据
 
-- Task 3 实施记录中的主 Rust 测试为 `34` 个，覆盖阅读链路、缓存、开始仪式、背景和夜间逻辑
-- 当前仓库可通过 `cargo check --example render-preview` 和 `./scripts/render-previews.sh OUTPUT_DIR` 生成三张 `800×480` 预览；本次文档整理时已实际生成 `reading-day.png`、`reading-focus.png`、`reading-night.png`
+- 最终复审后 `cargo test` 为 `38 passed; 0 failed`；`cargo test --example render-preview` 为 `6 passed; 0 failed`；仓库内 `3` 个 Shell 测试脚本全部通过
+- 当前仓库可通过 `cargo check --example render-preview` 和 `./scripts/render-previews.sh OUTPUT_DIR` 生成三张 `800×480` 预览；最终复审已用本机安装的 `WenQuanYi Zen Hei` 重新生成并人工检查 `reading-day.png`、`reading-focus.png`、`reading-night.png`
 - 预览链路复用生产组件，并由 example 测试锁定默认字体为 `WenQuanYi Zen Hei`
 - 真机无代理实测记录：今日诗词读书端点返回 `HTTP 200`；AIC IIIF 图片请求返回 `HTTP 403`
 - 改版前基线记录：RSS 约 `23MB`，旧图缓存约 `2.67MB`

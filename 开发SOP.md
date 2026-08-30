@@ -222,6 +222,7 @@ ssh <device-host> "pkill -f raspberry-clock"
 ```bash
 cargo fmt --check
 cargo test
+cargo test --example render-preview
 ./tests/install-autostart.sh
 ./tests/run-clock-config.sh
 ./tests/watch-clock-config.sh
