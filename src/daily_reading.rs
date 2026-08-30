@@ -278,9 +278,12 @@ fn cleanup_legacy_cache(cache_dir: &Path) -> std::io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::BTreeSet;
     use std::fs;
     use std::io::Cursor;
     use std::path::PathBuf;
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use std::sync::{Arc, Barrier};
     use std::time::Duration;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -652,14 +655,37 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_cache_paths_are_unique_under_parallel_creation() {
+        let worker_count = 64;
+        let barrier = Arc::new(Barrier::new(worker_count));
+        let workers: Vec<_> = (0..worker_count)
+            .map(|_| {
+                let barrier = Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    unique_test_cache_dir()
+                })
+            })
+            .collect();
+        let paths: BTreeSet<_> = workers
+            .into_iter()
+            .map(|worker| worker.join().unwrap())
+            .collect();
+
+        assert_eq!(paths.len(), worker_count);
+    }
+
     fn unique_test_cache_dir() -> PathBuf {
+        static COUNTER: AtomicU64 = AtomicU64::new(0);
         let nonce = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
+        let sequence = COUNTER.fetch_add(1, Ordering::Relaxed);
         std::env::temp_dir().join(format!(
-            "raspberry-clock-reading-test-{}-{nonce}",
-            std::process::id()
+            "raspberry-clock-reading-test-{}-{nonce}-{sequence}",
+            std::process::id(),
         ))
     }
 }
