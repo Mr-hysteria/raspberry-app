@@ -1,15 +1,15 @@
-use daily_quote::{
-    default_cache_dir, fallback_quote, fetch_and_cache, load_cached, should_refresh, DailyQuote,
+use daily_reading::{
+    default_cache_dir, fallback_reading, fetch_and_cache, load_cache, select_display,
+    should_refresh, DailyReading,
 };
 use display_power::{apply_screen_power, DisplayPowerState};
 use domain::{days_until_cpa, is_night_screen_window, year_remaining_fraction};
 use std::cell::RefCell;
-use std::path::Path;
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-mod daily_quote;
+mod daily_reading;
 mod display_power;
 mod domain;
 
@@ -17,8 +17,8 @@ slint::include_modules!();
 
 struct AppState {
     display_power: DisplayPowerState,
-    quote_sender: Sender<Result<DailyQuote, String>>,
-    quote_receiver: Receiver<Result<DailyQuote, String>>,
+    quote_sender: Sender<Result<DailyReading, String>>,
+    quote_receiver: Receiver<Result<DailyReading, String>>,
     quote_fetch_in_progress: bool,
     last_quote_fetch: Option<Instant>,
     active_quote_date: String,
@@ -56,11 +56,10 @@ fn main() -> Result<(), slint::PlatformError> {
     std::env::set_var("SLINT_FULLSCREEN", "1");
 
     let app = AppWindow::new()?;
-    let cached_quote = load_cached(&default_cache_dir()).unwrap_or_else(fallback_quote);
-    let image_loaded = apply_quote(&app, &cached_quote);
-    let state = Rc::new(RefCell::new(AppState::new(refresh_date_after_apply(
-        &cached_quote,
-        image_loaded,
+    let cached_reading = select_display(&load_cache(&default_cache_dir()));
+    apply_reading(&app, &cached_reading);
+    let state = Rc::new(RefCell::new(AppState::new(active_date_after_apply(
+        &cached_reading,
     ))));
     install_touch_wake(&app, state.clone());
     refresh_window(&app, &state);
@@ -170,10 +169,10 @@ fn apply_quote_updates(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
         };
 
         match update {
-            Ok(Ok(quote)) => {
-                let image_loaded = apply_quote(app, &quote);
+            Ok(Ok(reading)) => {
+                apply_reading(app, &reading);
                 let mut state_ref = state.borrow_mut();
-                state_ref.active_quote_date = refresh_date_after_apply(&quote, image_loaded);
+                state_ref.active_quote_date = active_date_after_apply(&reading);
                 state_ref.quote_fetch_in_progress = false;
             }
             Ok(Err(error)) => {
@@ -203,35 +202,27 @@ fn maybe_start_quote_fetch(state: &mut AppState, date_key: &str) {
     state.last_quote_fetch = Some(Instant::now());
     let sender = state.quote_sender.clone();
     let cache_dir = default_cache_dir();
+    let local_date = date_key.to_string();
 
     std::thread::spawn(move || {
-        let result = fetch_and_cache(&cache_dir).map_err(|error| error.to_string());
+        let result = fetch_and_cache(&cache_dir, &local_date).map_err(|error| error.to_string());
         let _ = sender.send(result);
     });
 }
 
-fn apply_quote(app: &AppWindow, quote: &DailyQuote) -> bool {
-    app.set_quote_english(quote.content.clone().into());
-    app.set_quote_chinese(quote.note.clone().into());
-
-    let image = quote
-        .local_image_path
-        .as_deref()
-        .filter(|path| Path::new(path).exists())
-        .and_then(|path| slint::Image::load_from_path(Path::new(path)).ok());
-    let image_loaded = image.is_some();
-
-    app.set_has_background_image(image_loaded);
-    app.set_background_image(image.unwrap_or_default());
-    image_loaded
+fn apply_reading(app: &AppWindow, reading: &DailyReading) {
+    app.set_quote_english(reading.content.clone().into());
+    app.set_quote_chinese(format_reading_source(reading).into());
+    app.set_has_background_image(false);
+    app.set_background_image(slint::Image::default());
 }
 
-fn refresh_date_after_apply(quote: &DailyQuote, image_loaded: bool) -> String {
-    if quote.picture_url.is_none() || image_loaded {
-        quote.dateline.clone()
-    } else {
-        String::new()
-    }
+fn format_reading_source(reading: &DailyReading) -> String {
+    format!("{}《{}》", reading.author, reading.origin)
+}
+
+fn active_date_after_apply(reading: &DailyReading) -> String {
+    reading.fetched_for_date.clone()
 }
 
 fn unix_timestamp() -> u64 {
@@ -269,22 +260,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn quote_with_picture_is_not_current_until_image_loads() {
-        let quote = DailyQuote {
-            content: "Today".to_string(),
-            note: "今天".to_string(),
-            dateline: "2026-07-01".to_string(),
-            picture_url: Some("https://example.com/today.jpg".to_string()),
-            local_image_path: Some("/invalid/cache.png".to_string()),
+    fn active_date_after_apply_uses_fetched_for_date() {
+        let reading = DailyReading {
+            content: "今日诗句".to_string(),
+            origin: "白鹿洞二首·其一".to_string(),
+            author: "王贞白".to_string(),
+            category: "古诗文-人生-读书".to_string(),
+            fetched_for_date: "2026-08-30".to_string(),
         };
 
-        assert_eq!(refresh_date_after_apply(&quote, false), "");
-        assert_eq!(refresh_date_after_apply(&quote, true), "2026-07-01");
+        assert_eq!(active_date_after_apply(&reading), "2026-08-30");
     }
 
     #[test]
-    fn quote_without_picture_is_current_without_an_image() {
-        let quote = fallback_quote();
-        assert_eq!(refresh_date_after_apply(&quote, false), quote.dateline);
+    fn format_reading_source_includes_author_and_origin() {
+        let reading = fallback_reading();
+        assert_eq!(format_reading_source(&reading), "王贞白《白鹿洞二首·其一》");
     }
 }
