@@ -2,192 +2,175 @@ export component AppWindow inherits Window {
     in-out property <string> time-text: "00:00";
     in-out property <string> seconds-text: "00";
     in-out property <string> date-weekday-text: "0000年00月00日 · 星期一";
-    in-out property <string> year-remaining-text: "今年还剩 0%";
-    in-out property <float> year-remaining-progress: 0.0;
-    in-out property <string> cpa-countdown-text: "还有 0 天";
-    in-out property <string> cpa-date-text: "考试日期 · 8月29日";
-    in-out property <string> quote-english: "Small steps still move you forward.";
-    in-out property <string> quote-chinese: "每一个微小的行动，都在让你靠近目标。";
-    in-out property <image> background-image;
-    in-out property <bool> has-background-image: false;
+    in-out property <string> reading-content: "读书不觉已春深，一寸光阴一寸金。";
+    in-out property <string> reading-source: "王贞白《白鹿洞二首·其一》 · 读书";
+    in-out property <bool> focus-active: false;
+    in-out property <color> canvas-color: #e2dbcc;
+    in-out property <color> wash-primary-color: #ad9a7b38;
+    in-out property <color> wash-secondary-color: #798e8320;
+    in-out property <color> text-primary-color: #463c2f;
+    in-out property <color> text-muted-color: #6f6657;
+    in-out property <color> accent-color: #997c53;
+    in-out property <int> scene-variant: 0;
     in-out property <bool> night-mode: false;
 
     callback screen-tapped();
 
     preferred-width: 800px;
     preferred-height: 480px;
-    background: root.night-mode ? #111817 : #2d3934;
+    background: root.canvas-color;
 
     Rectangle {
         width: parent.width;
         height: parent.height;
-        background: root.night-mode ? #111817 : #2d3934;
+        background: root.canvas-color;
 
-        if root.has-background-image: Image {
-            width: parent.width;
-            height: parent.height;
-            source: root.background-image;
-            image-fit: cover;
+        Rectangle {
+            x: root.scene-variant == 0 ? -28px :
+               root.scene-variant == 1 ? 384px :
+               root.scene-variant == 2 ? 72px : 448px;
+            y: root.scene-variant == 0 ? -42px :
+               root.scene-variant == 1 ? -34px :
+               root.scene-variant == 2 ? 228px : 188px;
+            width: root.scene-variant == 2 ? 328px : 352px;
+            height: root.scene-variant == 0 ? 208px :
+                root.scene-variant == 1 ? 236px :
+                root.scene-variant == 2 ? 176px : 202px;
+            border-radius: 44px;
+            background: root.wash-primary-color;
         }
 
         Rectangle {
-            width: parent.width;
-            height: parent.height;
-            background: root.night-mode
-                ? @linear-gradient(90deg, #0d1513df 0%, #0d1412bf 62%, #0a100fe0 100%)
-                : @linear-gradient(90deg, #17231fcf 0%, #18241fa8 62%, #0c1311d0 100%);
+            x: root.scene-variant == 0 ? 476px :
+               root.scene-variant == 1 ? 52px :
+               root.scene-variant == 2 ? 430px : 18px;
+            y: root.scene-variant == 0 ? 48px :
+               root.scene-variant == 1 ? 266px :
+               root.scene-variant == 2 ? 18px : 298px;
+            width: root.scene-variant == 3 ? 288px : 264px;
+            height: root.scene-variant == 0 ? 176px :
+                root.scene-variant == 1 ? 152px :
+                root.scene-variant == 2 ? 206px : 150px;
+            border-radius: 56px;
+            background: root.wash-secondary-color;
         }
 
         Rectangle {
-            x: 0;
-            y: parent.height - 150px;
-            width: parent.width;
-            height: 160px;
-            background: @linear-gradient(0deg, #070b0ae8 0%, #080d0c00 100%);
+            x: root.scene-variant == 0 ? 564px :
+               root.scene-variant == 1 ? 538px :
+               root.scene-variant == 2 ? -18px : 516px;
+            y: root.scene-variant == 0 ? 286px :
+               root.scene-variant == 1 ? 120px :
+               root.scene-variant == 2 ? 76px : 16px;
+            width: root.scene-variant == 2 ? 244px : 216px;
+            height: root.scene-variant == 0 ? 150px :
+                root.scene-variant == 1 ? 216px :
+                root.scene-variant == 2 ? 164px : 244px;
+            border-radius: 52px;
+            background: root.wash-primary-color;
         }
 
         Text {
-            x: 58px;
-            y: 54px;
-            width: 400px;
-            height: 122px;
-            text: root.time-text;
-            color: #f8f5ee;
-            font-family: "Noto Serif CJK SC";
-            font-size: 118px;
-            font-weight: 400;
+            x: 64px;
+            y: 38px;
+            width: 420px;
+            height: 28px;
+            text: root.date-weekday-text;
+            color: root.text-muted-color;
+            font-family: "WenQuanYi Zen Hei";
+            font-size: 22px;
+            font-weight: 500;
             vertical-alignment: center;
         }
 
         Text {
-            x: 430px;
-            y: 72px;
-            width: 42px;
-            height: 34px;
+            x: 58px;
+            y: 68px;
+            width: 356px;
+            height: 132px;
+            text: root.time-text;
+            color: root.text-primary-color;
+            font-family: "WenQuanYi Zen Hei";
+            font-size: 112px;
+            font-weight: 600;
+            vertical-alignment: center;
+        }
+
+        Text {
+            x: 424px;
+            y: 112px;
+            width: 38px;
+            height: 26px;
             text: root.seconds-text;
-            color: #f8f5ee75;
-            font-family: "Noto Serif CJK SC";
-            font-size: 23px;
+            color: root.text-muted-color;
+            font-family: "WenQuanYi Zen Hei";
+            font-size: 22px;
+            font-weight: 500;
             horizontal-alignment: center;
             vertical-alignment: center;
         }
 
         Text {
             x: 64px;
-            y: 192px;
-            width: 420px;
-            height: 32px;
-            text: root.date-weekday-text;
-            color: #f8f5eee0;
+            y: 238px;
+            width: 92px;
+            height: 26px;
+            text: "今日一页";
+            color: root.accent-color;
             font-family: "WenQuanYi Zen Hei";
-            font-size: 23px;
-            font-weight: 500;
+            font-size: 20px;
+            font-weight: 600;
             vertical-alignment: center;
         }
 
         Rectangle {
-            x: parent.width - 270px;
-            y: 44px;
-            width: 220px;
-            height: 102px;
-            border-radius: 18px;
-            background: #080d0cdd;
-            border-color: #ffffff38;
-            border-width: 2px;
-
-            Text {
-                x: 20px;
-                y: 14px;
-                width: parent.width - 40px;
-                height: 50px;
-                text: root.year-remaining-text;
-                color: #fffdf7;
-                font-family: "WenQuanYi Zen Hei";
-                font-size: 28px;
-                font-weight: 700;
-                vertical-alignment: center;
-            }
-
-            Rectangle {
-                x: 20px;
-                y: 78px;
-                width: parent.width - 40px;
-                height: 7px;
-                border-radius: 4px;
-                background: #ffffff38;
-            }
-
-            Rectangle {
-                x: 20px;
-                y: 78px;
-                width: (parent.width - 40px) * root.year-remaining-progress;
-                height: 7px;
-                border-radius: 4px;
-                background: #f1d899;
-            }
-        }
-
-        Rectangle {
-            x: parent.width - 270px;
-            y: 158px;
-            width: 220px;
-            height: 112px;
-            border-radius: 18px;
-            background: #080d0cdd;
-            border-color: #ffffff38;
-            border-width: 2px;
-
-            Text {
-                x: 20px;
-                y: 12px;
-                width: parent.width - 40px;
-                height: 49px;
-                text: root.cpa-countdown-text;
-                color: #fffdf7;
-                font-family: "WenQuanYi Zen Hei";
-                font-size: 28px;
-                font-weight: 700;
-                vertical-alignment: center;
-            }
-
-            Text {
-                x: 20px;
-                y: 66px;
-                width: parent.width - 40px;
-                height: 28px;
-                text: root.cpa-date-text;
-                color: #f8f5eed0;
-                font-family: "WenQuanYi Zen Hei";
-                font-size: 18px;
-                font-weight: 500;
-            }
+            x: 168px;
+            y: 250px;
+            width: 42px;
+            height: 3px;
+            border-radius: 2px;
+            background: root.accent-color;
         }
 
         Text {
             x: 64px;
-            y: parent.height - 126px;
-            width: parent.width * 0.72;
-            height: 54px;
-            text: root.quote-english;
-            color: #f8f5eef2;
-            font-family: "Noto Serif CJK SC";
-            font-size: 24px;
-            font-weight: 400;
-            vertical-alignment: bottom;
-            wrap: word-wrap;
-        }
-
-        Text {
-            x: 64px;
-            y: parent.height - 66px;
-            width: parent.width * 0.72;
-            height: 34px;
-            text: root.quote-chinese;
-            color: #f8f5eeb5;
+            y: 270px;
+            width: 650px;
+            height: 104px;
+            text: root.reading-content;
+            color: root.focus-active ? root.text-muted-color : root.text-primary-color;
             font-family: "WenQuanYi Zen Hei";
-            font-size: 21px;
-            vertical-alignment: top;
+            font-size: 31px;
+            font-weight: 500;
             wrap: word-wrap;
+            overflow: clip;
+        }
+
+        Text {
+            x: 64px;
+            y: 382px;
+            width: 672px;
+            height: 28px;
+            text: root.reading-source;
+            color: root.focus-active ? root.text-muted-color : root.text-primary-color;
+            font-family: "WenQuanYi Zen Hei";
+            font-size: 20px;
+            font-weight: 500;
+            vertical-alignment: center;
+            overflow: clip;
+        }
+
+        Text {
+            x: 64px;
+            y: 430px;
+            width: 672px;
+            height: 26px;
+            text: root.focus-active ? "已经开始了，先读一页就好" : "轻触一下，先读一页";
+            color: root.focus-active ? root.text-primary-color : root.text-muted-color;
+            font-family: "WenQuanYi Zen Hei";
+            font-size: 20px;
+            font-weight: 500;
+            vertical-alignment: center;
         }
 
         TouchArea {
