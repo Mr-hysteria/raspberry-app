@@ -12,6 +12,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 mod daily_reading;
 mod display_power;
 mod domain;
+mod background;
 
 slint::include_modules!();
 
