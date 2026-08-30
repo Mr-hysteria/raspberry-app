@@ -23,7 +23,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let scene = scene_for_state(&state)?;
     let snapshot_status = Rc::new(RefCell::new(None));
 
-    app.window().set_size(slint::PhysicalSize::new(WIDTH, HEIGHT));
+    app.window()
+        .set_size(slint::PhysicalSize::new(WIDTH, HEIGHT));
     app.set_time_text("09:41".into());
     app.set_seconds_text("27".into());
     app.set_date_weekday_text("2026年08月30日 · 星期日".into());
@@ -38,7 +39,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     app.set_accent_color(scene.accent.to_slint_color());
     app.set_scene_variant(scene.variant.into());
     app.set_night_mode(state == "night");
-    app.set_ui_font_family(preview_font_family().into());
 
     schedule_snapshot(app.as_weak(), output_path, snapshot_status.clone());
     app.show()?;
@@ -115,7 +115,12 @@ fn write_ppm(
     output_path: &Path,
 ) -> std::io::Result<()> {
     let mut file = std::fs::File::create(output_path)?;
-    write!(file, "P6\n{} {}\n255\n", snapshot.width(), snapshot.height())?;
+    write!(
+        file,
+        "P6\n{} {}\n255\n",
+        snapshot.width(),
+        snapshot.height()
+    )?;
 
     for pixel in snapshot.as_slice() {
         file.write_all(&[pixel.r, pixel.g, pixel.b])?;
@@ -126,22 +131,4 @@ fn write_ppm(
 
 fn usage_error() -> String {
     "usage: render-preview <day|focus|night> <output.ppm>".to_string()
-}
-
-fn preview_font_family() -> String {
-    if let Ok(font_family) = std::env::var("RASPBERRY_PREVIEW_FONT") {
-        if !font_family.trim().is_empty() {
-            return font_family;
-        }
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        "Hiragino Sans GB".to_string()
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    {
-        "WenQuanYi Zen Hei".to_string()
-    }
 }
