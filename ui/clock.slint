@@ -5,12 +5,12 @@ export component AppWindow inherits Window {
     in-out property <string> reading-content: "读书不觉已春深，一寸光阴一寸金。";
     in-out property <string> reading-source: "王贞白《白鹿洞二首·其一》 · 读书";
     in-out property <bool> focus-active: false;
-    in-out property <color> canvas-color: #e2dbcc;
-    in-out property <color> wash-primary-color: #ad9a7b38;
-    in-out property <color> wash-secondary-color: #798e8320;
-    in-out property <color> text-primary-color: #463c2f;
-    in-out property <color> text-muted-color: #6f6657;
-    in-out property <color> accent-color: #997c53;
+    in-out property <color> canvas-color: #ebe7de;
+    in-out property <color> surface-color: #f9f6ef;
+    in-out property <color> rule-color: #86755848;
+    in-out property <color> text-primary-color: #2a2926;
+    in-out property <color> text-muted-color: #6b655b;
+    in-out property <color> accent-color: #8f6944;
     in-out property <int> scene-variant: 0;
     in-out property <bool> night-mode: false;
     in-out property <string> ui-font-family: "WenQuanYi Zen Hei";
@@ -26,151 +26,188 @@ export component AppWindow inherits Window {
         height: parent.height;
         background: root.canvas-color;
 
+        // A quiet tonal field replaces the old floating cards.
         Rectangle {
-            x: root.scene-variant == 0 ? -28px :
-               root.scene-variant == 1 ? 384px :
-               root.scene-variant == 2 ? 72px : 448px;
-            y: root.scene-variant == 0 ? -42px :
-               root.scene-variant == 1 ? -34px :
-               root.scene-variant == 2 ? 228px : 188px;
-            width: root.scene-variant == 2 ? 328px : 352px;
-            height: root.scene-variant == 0 ? 208px :
-                root.scene-variant == 1 ? 236px :
-                root.scene-variant == 2 ? 176px : 202px;
-            border-radius: 44px;
-            background: root.wash-primary-color;
+            width: parent.width;
+            height: parent.height;
+            background: @linear-gradient(135deg, #00000000 0%, #00000000 58%, root.rule-color 100%);
+        }
+
+        // Cropped hairline disc: a print-like motif rather than decoration blocks.
+        Rectangle {
+            x: root.scene-variant == 0 ? 636px :
+               root.scene-variant == 1 ? 586px :
+               root.scene-variant == 2 ? 648px : 606px;
+            y: root.scene-variant == 0 ? -124px :
+               root.scene-variant == 1 ? -154px :
+               root.scene-variant == 2 ? -108px : -138px;
+            width: 272px;
+            height: 272px;
+            border-radius: 136px;
+            border-width: 1px;
+            border-color: root.rule-color;
+            background: #00000000;
         }
 
         Rectangle {
-            x: root.scene-variant == 0 ? 476px :
-               root.scene-variant == 1 ? 52px :
-               root.scene-variant == 2 ? 430px : 18px;
-            y: root.scene-variant == 0 ? 48px :
-               root.scene-variant == 1 ? 266px :
-               root.scene-variant == 2 ? 18px : 298px;
-            width: root.scene-variant == 3 ? 288px : 264px;
-            height: root.scene-variant == 0 ? 176px :
-                root.scene-variant == 1 ? 152px :
-                root.scene-variant == 2 ? 206px : 150px;
-            border-radius: 56px;
-            background: root.wash-secondary-color;
-        }
-
-        Rectangle {
-            x: root.scene-variant == 0 ? 564px :
-               root.scene-variant == 1 ? 538px :
-               root.scene-variant == 2 ? -18px : 516px;
-            y: root.scene-variant == 0 ? 286px :
-               root.scene-variant == 1 ? 120px :
-               root.scene-variant == 2 ? 76px : 16px;
-            width: root.scene-variant == 2 ? 244px : 216px;
-            height: root.scene-variant == 0 ? 150px :
-                root.scene-variant == 1 ? 216px :
-                root.scene-variant == 2 ? 164px : 244px;
-            border-radius: 52px;
-            background: root.wash-primary-color;
+            x: 64px;
+            y: 38px;
+            width: 1px;
+            height: 28px;
+            background: root.accent-color;
         }
 
         Text {
-            x: 64px;
+            x: 78px;
             y: 38px;
-            width: 420px;
+            width: 410px;
             height: 28px;
             text: root.date-weekday-text;
             color: root.text-muted-color;
             font-family: root.ui-font-family;
-            font-size: 22px;
-            font-weight: 500;
+            font-size: 19px;
+            font-weight: 400;
+            vertical-alignment: center;
+        }
+
+        Text {
+            x: 546px;
+            y: 39px;
+            width: 188px;
+            height: 24px;
+            text: "DAILY READING";
+            color: root.text-muted-color;
+            font-family: root.ui-font-family;
+            font-size: 13px;
+            font-weight: 400;
+            horizontal-alignment: right;
             vertical-alignment: center;
         }
 
         Text {
             x: 58px;
-            y: 68px;
-            width: 356px;
-            height: 132px;
+            y: 70px;
+            width: 344px;
+            height: 112px;
             text: root.time-text;
             color: root.text-primary-color;
             font-family: root.ui-font-family;
-            font-size: 112px;
-            font-weight: 600;
+            font-size: 98px;
+            font-weight: 500;
             vertical-alignment: center;
         }
 
         Text {
-            x: 424px;
-            y: 112px;
-            width: 38px;
-            height: 26px;
+            x: 392px;
+            y: 121px;
+            width: 36px;
+            height: 24px;
             text: root.seconds-text;
             color: root.text-muted-color;
             font-family: root.ui-font-family;
-            font-size: 22px;
-            font-weight: 500;
+            font-size: 19px;
+            font-weight: 400;
             horizontal-alignment: center;
             vertical-alignment: center;
         }
 
-        Text {
+        Rectangle {
             x: 64px;
-            y: 238px;
-            width: 92px;
-            height: 26px;
+            y: 198px;
+            width: 670px;
+            height: 1px;
+            background: root.rule-color;
+        }
+
+        Rectangle {
+            x: 726px;
+            y: 194px;
+            width: 8px;
+            height: 8px;
+            border-radius: 4px;
+            background: root.focus-active ? root.accent-color : root.rule-color;
+        }
+
+        // The only card is meaningful: it is the reading sheet.
+        Rectangle {
+            x: 48px;
+            y: 222px;
+            width: 704px;
+            height: 196px;
+            border-radius: 14px;
+            border-width: 1px;
+            border-color: root.focus-active ? root.accent-color : root.rule-color;
+            background: root.surface-color;
+
+            Rectangle {
+                x: 0;
+                y: root.focus-active ? 0 : 24px;
+                width: root.focus-active ? 3px : 1px;
+                height: root.focus-active ? parent.height : 148px;
+                border-radius: 2px;
+                background: root.focus-active ? root.accent-color : root.rule-color;
+            }
+        }
+
+        Text {
+            x: 72px;
+            y: 242px;
+            width: 88px;
+            height: 24px;
             text: "今日一页";
             color: root.accent-color;
             font-family: root.ui-font-family;
-            font-size: 20px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 500;
             vertical-alignment: center;
         }
 
         Rectangle {
-            x: 168px;
-            y: 250px;
-            width: 42px;
-            height: 3px;
-            border-radius: 2px;
+            x: 158px;
+            y: 254px;
+            width: 38px;
+            height: 1px;
             background: root.accent-color;
         }
 
         Text {
-            x: 64px;
-            y: 270px;
-            width: 650px;
-            height: 104px;
+            x: 72px;
+            y: 278px;
+            width: 644px;
+            height: 72px;
             text: root.reading-content;
-            color: root.focus-active ? root.text-muted-color : root.text-primary-color;
+            color: root.text-primary-color;
             font-family: root.ui-font-family;
-            font-size: 31px;
+            font-size: 34px;
             font-weight: 500;
             wrap: word-wrap;
             overflow: clip;
         }
 
         Text {
-            x: 64px;
-            y: 382px;
-            width: 672px;
-            height: 28px;
+            x: 72px;
+            y: 366px;
+            width: 644px;
+            height: 26px;
             text: root.reading-source;
-            color: root.focus-active ? root.text-muted-color : root.text-primary-color;
+            color: root.text-muted-color;
             font-family: root.ui-font-family;
-            font-size: 20px;
-            font-weight: 500;
+            font-size: 18px;
+            font-weight: 400;
             vertical-alignment: center;
             overflow: clip;
         }
 
         Text {
             x: 64px;
-            y: 430px;
+            y: 434px;
             width: 672px;
             height: 26px;
             text: root.focus-active ? "已经开始了，先读一页就好" : "轻触一下，先读一页";
-            color: root.focus-active ? root.text-primary-color : root.text-muted-color;
+            color: root.focus-active ? root.accent-color : root.text-muted-color;
             font-family: root.ui-font-family;
-            font-size: 20px;
-            font-weight: 500;
+            font-size: 18px;
+            font-weight: 400;
             vertical-alignment: center;
         }
 

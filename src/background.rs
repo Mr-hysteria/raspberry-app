@@ -16,8 +16,8 @@ impl RgbaColor {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct BackgroundScene {
     pub canvas: RgbaColor,
-    pub wash_primary: RgbaColor,
-    pub wash_secondary: RgbaColor,
+    pub surface: RgbaColor,
+    pub rule: RgbaColor,
     pub text_primary: RgbaColor,
     pub text_muted: RgbaColor,
     pub accent: RgbaColor,
@@ -26,78 +26,78 @@ pub struct BackgroundScene {
 
 const DAY_SCENES: [BackgroundScene; 4] = [
     BackgroundScene {
-        canvas: rgba(226, 219, 204, 255),
-        wash_primary: rgba(173, 154, 123, 56),
-        wash_secondary: rgba(121, 142, 131, 32),
-        text_primary: rgba(70, 60, 47, 255),
-        text_muted: rgba(111, 102, 87, 255),
-        accent: rgba(153, 124, 83, 255),
+        canvas: rgba(232, 228, 219, 255),
+        surface: rgba(247, 244, 238, 255),
+        rule: rgba(145, 118, 88, 80),
+        text_primary: rgba(42, 41, 38, 255),
+        text_muted: rgba(105, 101, 94, 255),
+        accent: rgba(145, 108, 70, 255),
         variant: 0,
     },
     BackgroundScene {
-        canvas: rgba(213, 223, 214, 255),
-        wash_primary: rgba(124, 154, 138, 44),
-        wash_secondary: rgba(186, 162, 130, 28),
-        text_primary: rgba(56, 67, 58, 255),
-        text_muted: rgba(88, 100, 92, 255),
-        accent: rgba(132, 118, 89, 255),
+        canvas: rgba(229, 232, 225, 255),
+        surface: rgba(245, 246, 241, 255),
+        rule: rgba(125, 130, 108, 72),
+        text_primary: rgba(39, 44, 40, 255),
+        text_muted: rgba(96, 104, 97, 255),
+        accent: rgba(130, 104, 72, 255),
         variant: 1,
     },
     BackgroundScene {
-        canvas: rgba(219, 216, 228, 255),
-        wash_primary: rgba(142, 133, 162, 48),
-        wash_secondary: rgba(186, 171, 137, 30),
-        text_primary: rgba(62, 58, 76, 255),
-        text_muted: rgba(98, 92, 111, 255),
-        accent: rgba(120, 111, 151, 255),
+        canvas: rgba(235, 231, 222, 255),
+        surface: rgba(249, 246, 239, 255),
+        rule: rgba(134, 117, 88, 72),
+        text_primary: rgba(42, 41, 38, 255),
+        text_muted: rgba(107, 101, 91, 255),
+        accent: rgba(143, 105, 68, 255),
         variant: 2,
     },
     BackgroundScene {
-        canvas: rgba(232, 221, 214, 255),
-        wash_primary: rgba(171, 132, 117, 52),
-        wash_secondary: rgba(128, 147, 155, 34),
-        text_primary: rgba(77, 58, 49, 255),
-        text_muted: rgba(118, 96, 88, 255),
-        accent: rgba(156, 110, 89, 255),
+        canvas: rgba(235, 228, 224, 255),
+        surface: rgba(249, 244, 240, 255),
+        rule: rgba(155, 109, 90, 72),
+        text_primary: rgba(48, 40, 37, 255),
+        text_muted: rgba(112, 96, 90, 255),
+        accent: rgba(151, 96, 74, 255),
         variant: 3,
     },
 ];
 
 const NIGHT_SCENES: [BackgroundScene; 4] = [
     BackgroundScene {
-        canvas: rgba(24, 27, 31, 255),
-        wash_primary: rgba(148, 121, 82, 44),
-        wash_secondary: rgba(86, 104, 112, 26),
-        text_primary: rgba(227, 216, 194, 255),
-        text_muted: rgba(180, 169, 152, 255),
-        accent: rgba(179, 141, 96, 255),
+        canvas: rgba(22, 24, 27, 255),
+        surface: rgba(32, 34, 37, 255),
+        rule: rgba(172, 139, 99, 72),
+        text_primary: rgba(235, 228, 214, 255),
+        text_muted: rgba(165, 158, 146, 255),
+        accent: rgba(184, 143, 96, 255),
         variant: 0,
     },
     BackgroundScene {
-        canvas: rgba(22, 31, 28, 255),
-        wash_primary: rgba(118, 142, 121, 38),
-        wash_secondary: rgba(138, 118, 88, 24),
-        text_primary: rgba(220, 226, 214, 255),
-        text_muted: rgba(172, 182, 169, 255),
-        accent: rgba(151, 136, 102, 255),
+        canvas: rgba(20, 27, 25, 255),
+        surface: rgba(29, 37, 34, 255),
+        rule: rgba(146, 145, 110, 64),
+        text_primary: rgba(229, 232, 221, 255),
+        text_muted: rgba(159, 168, 157, 255),
+        accent: rgba(171, 142, 96, 255),
         variant: 1,
     },
     BackgroundScene {
-        canvas: rgba(25, 25, 34, 255),
-        wash_primary: rgba(120, 109, 147, 42),
-        wash_secondary: rgba(153, 138, 94, 24),
-        text_primary: rgba(224, 219, 235, 255),
-        text_muted: rgba(174, 168, 190, 255),
-        accent: rgba(142, 133, 173, 255),
+        canvas: rgba(23, 24, 26, 255),
+        surface: rgba(34, 35, 37, 255),
+        rule: rgba(168, 139, 96, 64),
+        text_primary: rgba(235, 229, 216, 255),
+        text_muted: rgba(166, 159, 147, 255),
+        accent: rgba(182, 141, 93, 255),
         variant: 2,
     },
     BackgroundScene {
-        canvas: rgba(32, 24, 24, 255),
-        wash_primary: rgba(154, 109, 96, 40),
-        wash_secondary: rgba(95, 112, 121, 28),
-        text_primary: rgba(232, 219, 211, 255),
-        text_muted: rgba(189, 172, 164, 255),
-        accent: rgba(182, 129, 103, 255),
+        canvas: rgba(28, 22, 22, 255),
+        surface: rgba(39, 31, 30, 255),
+        rule: rgba(177, 125, 105, 64),
+        text_primary: rgba(238, 227, 219, 255),
+        text_muted: rgba(173, 158, 150, 255),
+        accent: rgba(192, 137, 107, 255),
         variant: 3,
     },
 ];
@@ -164,13 +164,10 @@ mod tests {
                 );
                 assert_eq!(scene.text_muted.a, 255, "{mode} scene {index} muted text");
                 assert_eq!(scene.accent.a, 255, "{mode} scene {index} accent");
+                assert_eq!(scene.surface.a, 255, "{mode} scene {index} surface");
                 assert!(
-                    (20..=96).contains(&scene.wash_primary.a),
-                    "{mode} scene {index} primary wash"
-                );
-                assert!(
-                    (20..=96).contains(&scene.wash_secondary.a),
-                    "{mode} scene {index} secondary wash"
+                    (48..=112).contains(&scene.rule.a),
+                    "{mode} scene {index} editorial rule"
                 );
             }
         }
@@ -183,6 +180,44 @@ mod tests {
                 luminance(night.canvas) < luminance(day.canvas),
                 "night scene {index} must be darker than its day pair"
             );
+        }
+    }
+
+    #[test]
+    fn editorial_surface_is_opaque_and_visibly_separate_from_canvas() {
+        for (mode, scenes) in [("day", &DAY_SCENES), ("night", &NIGHT_SCENES)] {
+            for (index, scene) in scenes.iter().enumerate() {
+                assert_eq!(scene.surface.a, 255, "{mode} scene {index} surface");
+                assert!(
+                    luminance(scene.surface) > luminance(scene.canvas),
+                    "{mode} scene {index} surface must lift above the canvas"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn editorial_surface_keeps_high_reading_contrast() {
+        for (mode, scenes) in [("day", &DAY_SCENES), ("night", &NIGHT_SCENES)] {
+            for (index, scene) in scenes.iter().enumerate() {
+                let difference = luminance(scene.text_primary).abs_diff(luminance(scene.surface));
+                assert!(
+                    difference >= 110_000,
+                    "{mode} scene {index} text/surface contrast"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn editorial_rule_stays_translucent() {
+        for (mode, scenes) in [("day", &DAY_SCENES), ("night", &NIGHT_SCENES)] {
+            for (index, scene) in scenes.iter().enumerate() {
+                assert!(
+                    (48..=112).contains(&scene.rule.a),
+                    "{mode} scene {index} editorial rule"
+                );
+            }
         }
     }
 

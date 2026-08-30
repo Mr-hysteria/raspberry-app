@@ -124,8 +124,8 @@ fn refresh_window(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
     app.set_seconds_text(snapshot.seconds_text.into());
     app.set_date_weekday_text(snapshot.date_weekday_text.into());
     app.set_canvas_color(scene.canvas.to_slint_color());
-    app.set_wash_primary_color(scene.wash_primary.to_slint_color());
-    app.set_wash_secondary_color(scene.wash_secondary.to_slint_color());
+    app.set_surface_color(scene.surface.to_slint_color());
+    app.set_rule_color(scene.rule.to_slint_color());
     app.set_text_primary_color(scene.text_primary.to_slint_color());
     app.set_text_muted_color(scene.text_muted.to_slint_color());
     app.set_accent_color(scene.accent.to_slint_color());
