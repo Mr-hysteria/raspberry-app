@@ -3,33 +3,34 @@
 ## 1. 项目目标
 
 - 项目名称：`raspberry-clock`
-- 目标：在 `Raspberry Pi Zero 2 W` 上稳定运行一个全屏时钟程序，替代历史上的 `HTML + Chromium` 方案。
-- 当前技术路线：`Rust + Slint` 原生应用，优先降低内存占用、减少依赖、方便开机自启。
+- 当前目标：在 `Raspberry Pi Zero 2 W` 上稳定运行一个全屏每日阅读屏，用时间、古诗文片段和极轻的开始仪式服务书桌场景，而不是任务压力场景。
+- 当前技术路线：`Rust + Slint` 原生应用，优先降低运行时占用、减少依赖、方便开机自启。
 - 目标设备约束：
   - 设备：`Raspberry Pi Zero 2 W`
   - 内存：`512MB`
   - 系统：`Debian 13 (Trixie) 64-bit`
-  - 屏幕分辨率：`800x480`
+  - 屏幕分辨率：`800×480`
+  - 会话环境：`X11`
 
 ## 2. 当前状态
 
 - 当前已完成：
-  - 原生全屏沉浸式海报时钟界面
+  - 全屏每日阅读屏界面
   - 时间、秒、日期、星期展示
-  - 年度剩余百分比与 CPA 考试倒计时
-  - 金山词霸双语每日一句、背景图与本地缓存
-  - 23:30–07:00 自动息屏及 60 秒触摸唤醒
-  - 昼夜主题切换
-  - 中文字体显示
-  - `800x480` 小屏布局适配
-  - 树莓派初始化脚本与运行脚本
-  - LightDM/LXDE 桌面会话自动启动
+  - 五条白名单今日诗词分类路由与按日期稳定选择
+  - 必填字段校验、`40` 字长度限制与负向词过滤
+  - `current` / `previous` 双槽 JSON 缓存与内置回退诗句
+  - 程序化背景色板与昼夜色系切换
+  - 白天轻触开始仪式；夜间轻触仅临时亮屏 `60` 秒
+  - `23:30–07:00` 自动息屏
+  - 预览示例与三张 `800×480` 截图生成脚本
+  - 树莓派初始化脚本、部署脚本、桌面自启动与异常退出守护
 - 当前主线：
   - 保持程序在低内存设备上的稳定运行
-  - 继续优化 UI、部署体验和可维护性
+  - 继续压实真机验证、维护体验和文档一致性
 - 当前风险：
-  - 项目还缺少专门的架构记录与迭代记录，需要持续沉淀
-  - `开发SOP.md` 含有设备 IP / 凭据示例，后续整理时要避免继续扩散敏感信息
+  - 最终部署后的 RSS、缓存大小、进程存活与真机截图还需要追加实测记录
+  - 夜间 DPMS 与白天开始仪式的最终设备验证要以实际部署结果为准
 
 ## 3. 快速上手
 
@@ -39,13 +40,15 @@
 
 1. `README.md`
 2. `agent.md`
-3. `docs/prd-healing-life.md`
-4. `开发SOP.md`
-5. `src/main.rs`
-6. `ui/clock.slint`
-7. `run-clock.sh`
-8. `docs/decisions.md`
-9. `docs/iteration-log.md`
+3. `docs/architecture.md`
+4. `docs/prd-healing-life.md`
+5. `开发SOP.md`
+6. `src/main.rs`
+7. `src/daily_reading.rs`
+8. `ui/clock.slint`
+9. `run-clock.sh`
+10. `docs/decisions.md`
+11. `docs/iteration-log.md`
 
 ### 常用命令
 
@@ -68,6 +71,13 @@ PKG_CONFIG_ALLOW_CROSS=1 cargo build --release --target aarch64-unknown-linux-gn
 ./run-clock.sh
 ```
 
+预览生成：
+
+```bash
+cargo check --example render-preview
+./scripts/render-previews.sh ./tmp/previews
+```
+
 树莓派初始化：
 
 ```bash
@@ -78,13 +88,21 @@ chmod +x scripts/bootstrap-pi.sh run-clock.sh
 ## 4. 代码结构
 
 ```text
-Cargo.toml              Rust 依赖与构建配置
-build.rs                编译 Slint UI 资源
-src/main.rs             时间读取、状态刷新、应用入口
-ui/clock.slint          全屏时钟 UI 布局与样式
-run-clock.sh            树莓派桌面环境下的启动脚本
-scripts/bootstrap-pi.sh 树莓派依赖安装与首次构建
-.cargo/config.toml      Cargo 源与交叉编译 linker 配置
+Cargo.toml                  Rust 依赖与构建配置
+build.rs                    编译 Slint UI 资源
+src/main.rs                 应用入口、时钟刷新、后台线程与 Slint 绑定
+src/daily_reading.rs        今日阅读请求、双槽缓存、过滤与离线回退
+src/background.rs           程序化背景色板与日期稳定选择
+src/domain.rs               夜间窗口判断与开始仪式状态
+src/display_power.rs        X11 DPMS 协调与 60 秒唤醒逻辑
+ui/clock.slint              800×480 固定布局与属性绑定
+examples/render-preview.rs  生产组件预览示例
+scripts/render-previews.sh  预览图生成脚本
+run-clock.sh                树莓派桌面环境下的启动脚本
+scripts/bootstrap-pi.sh     树莓派依赖安装与首次构建
+scripts/install-autostart.sh 自启动安装
+scripts/watch-clock.sh      时钟进程守护
+.cargo/config.toml          Cargo 源与交叉编译 linker 配置
 ```
 
 ### 核心模块职责
@@ -92,62 +110,68 @@ scripts/bootstrap-pi.sh 树莓派依赖安装与首次构建
 - `src/main.rs`
   - 设置 Slint 后端与全屏参数
   - 每秒刷新一次时钟快照
-  - 通过 `libc::localtime_r` 读取本地时间
+  - 通过 `mpsc` 接收后台阅读更新
+  - 绑定阅读内容、程序化背景、开始仪式和夜间息屏状态
+- `src/daily_reading.rs`
+  - 选择当天分类接口
+  - 解析 JSON、执行长度与负向词过滤
+  - 维护 `daily-reading.json` 的 `current` / `previous` 槽位
+  - 清理历史版本遗留缓存文件
+- `src/background.rs`
+  - 为日期选择确定性的日间或夜间色板
+  - 向 Slint 输出画布、洗色块和文字颜色
 - `src/domain.rs`
-  - 计算年度剩余、CPA 倒计时和夜间息屏区间
-- `src/daily_quote.rs`
-  - 请求金山词霸每日一句并维护本地 JSON/图片缓存
+  - 计算 `23:30–07:00` 夜间窗口
+  - 管理白天轻触切换的 `StartRitual`
 - `src/display_power.rs`
-  - 管理夜间触摸唤醒状态并调用 X11 DPMS
+  - 管理夜间触摸唤醒截止时间
+  - 调用 `xset dpms force on/off`
 - `ui/clock.slint`
-  - 定义窗口尺寸、颜色、文字布局与字体
-  - 当前布局按 `800x480` 固定设计
+  - 定义 `800×480` 固定布局、字体和底部提示切换
+- `examples/render-preview.rs`
+  - 使用真实组件生成普通、开始、夜间预览
+- `scripts/render-previews.sh`
+  - 把预览示例输出的 PPM 转成 PNG 并校验尺寸
 - `run-clock.sh`
-  - 负责关闭屏保、关闭 DPMS、隐藏鼠标、避免重复启动
+  - 负责关闭屏保、关闭自动 DPMS、隐藏鼠标、避免重复启动
   - 优先运行 `release`，回退到 `debug`
-- `scripts/install-autostart.sh`
-  - 安装 `~/.config/autostart/raspberry-clock.desktop`
-  - 在桌面自动登录后启动 `scripts/watch-clock.sh`
-- `scripts/watch-clock.sh`
-  - 监控 `run-clock.sh` 启动的时钟进程
-  - 进程被 OOM Killer 或异常终止后 3 秒自动重启
 
 ## 5. 关键约束
 
-- 优先保证在 `512MB` 设备上稳定运行，避免为了“功能丰富”显著增加内存占用。
+- 优先保证在 `512MB` 设备上稳定运行，避免为了功能丰富显著增加内存占用。
 - 默认渲染路径是 `Slint software renderer`，不要假设 GPU 加速存在。
-- 每日一句请求必须在后台线程运行，不能阻塞每秒时钟刷新。
+- 阅读内容请求必须在后台线程运行，不能阻塞每秒时钟刷新。
+- 运行时不得请求、解码或缓存远程图片。
 - 夜间息屏依赖 X11 的 `xset dpms force on/off`，部署环境必须保留 `x11-xserver-utils`。
-- Debian 13 当前安装的是经典版 `unclutter` 8.x，只接受 `-idle`、`-jitter`、`-root` 等单横线参数；不要使用 `unclutter-xfixes` 的 `--timeout`、`--fork` 等长参数，否则进程会打印 usage 后退出，鼠标光标不会隐藏。
-- UI 修改必须考虑 `800x480` 屏幕，不要只按桌面显示器效果判断。
-- 启动脚本承担现场运行职责，改动时要特别注意：
-  - 是否影响 X11 环境变量
-  - 是否影响全屏
-  - 是否破坏重复启动时的进程清理逻辑
-- 涉及部署说明时，不要在新文档里继续固化明文密码、IP、个人路径等环境特定信息。
+- Debian 13 当前安装的是经典版 `unclutter` 8.x，只接受 `-idle`、`-jitter`、`-root` 等单横线参数；不要改成长参数风格。
+- UI 修改必须考虑 `800×480` 屏幕，不要只按桌面显示器效果判断。
+- 开始仪式只允许白天切换文案与文字对比度，不计时、不计数、不落盘。
+- 涉及部署说明时，不要在文档里固化明文密码、固定 IP 或个人开发机路径。
 
-## 6. Agent 工作方式
+## 6. 协作方式
 
 ### 接手任务前
 
 - 先确认任务属于哪一类：
-  - UI 调整：重点看 `ui/clock.slint`
-  - 时间/逻辑调整：重点看 `src/main.rs`
-  - 启动/部署问题：重点看 `run-clock.sh`、`scripts/bootstrap-pi.sh`、`开发SOP.md`
+  - UI 调整：重点看 `ui/clock.slint`、`src/background.rs`
+  - 阅读链路调整：重点看 `src/daily_reading.rs`、`src/main.rs`
+  - 触摸/息屏问题：重点看 `src/domain.rs`、`src/display_power.rs`、`run-clock.sh`
+  - 启动/部署问题：重点看 `run-clock.sh`、`scripts/*.sh`、`开发SOP.md`
   - 构建/交叉编译问题：重点看 `Cargo.toml`、`.cargo/config.toml`、`rust-toolchain.toml`
 
 ### 改动时默认策略
 
 - 优先做小步、可验证改动，避免一次重写整套运行链路。
-- 优先保留现有“树莓派可直接运行”的能力。
+- 优先保留现有树莓派可直接运行的能力。
 - 新增依赖前先判断是否真的必要，特别是面向树莓派运行时依赖。
-- 如果更改会影响部署方式、目录结构、运行命令或业务行为，必须同步更新对应文档。
+- 如果更改会影响部署方式、目录结构、运行命令、缓存格式或用户可见行为，必须同步更新文档。
 
 ### 完成任务后
 
 - 至少检查以下文档是否需要更新：
   - `README.md`
   - `agent.md`
+  - `docs/architecture.md`
   - `开发SOP.md`
   - `docs/prd-healing-life.md`
   - `docs/decisions.md`
@@ -166,38 +190,32 @@ scripts/bootstrap-pi.sh 树莓派依赖安装与首次构建
 - `agent.md`
   - 当前状态变化
   - 风险变化
-  - 接手顺序或协作规则变化
+  - 推荐阅读顺序或协作规则变化
+- `docs/architecture.md`
+  - 模块关系、状态流、缓存或交互链路变化
 - `开发SOP.md`
-  - 编译、部署、运行、排障流程变化
+  - 编译、预览、部署、运行、排障流程变化
 - `docs/prd-healing-life.md`
   - 产品目标、范围、交互、视觉方向变化
 - `docs/iteration-log.md`
-  - 记录本次迭代目标、完成项、遗留项、风险、建议
+  - 本次迭代目标、完成项、已知证据、遗留项与建议
 
-### 按需新增
+### 按需新增或更新
 
 - `docs/decisions.md`
   - 出现重要技术取舍时新增记录
-  - 要说明“为什么这样做”，而不仅是“做了什么”
+  - 已被替代的历史决策要明确标记状态
 
 ## 8. 迭代收尾清单
 
 每次完成一轮功能、修复或部署调整后，按顺序检查：
 
-1. 代码是否已验证最关键路径
-2. 本次改动影响了哪些运行命令、脚本或目录
+1. 关键路径是否有对应验证
+2. 本次改动影响了哪些运行命令、脚本、目录或缓存
 3. `README.md` 是否需要同步
-4. `docs/prd-healing-life.md` 是否需要同步
-5. `开发SOP.md` 是否需要同步
-6. `docs/decisions.md` 是否需要新增决策记录
-7. `docs/iteration-log.md` 是否已补本次迭代摘要
-8. `agent.md` 中的当前状态、风险、推荐阅读顺序是否仍然准确
-
-## 9. 当前建议补强项
-
-- 补一份 `docs/architecture.md`，记录运行链路与模块关系
-- 清理或脱敏 `开发SOP.md` 中的环境专属信息
-- 增加最小验证清单，例如：
-  - 本地 `cargo build`
-  - 树莓派脚本可运行
-  - UI 在 `800x480` 下布局未错位
+4. `docs/architecture.md` 是否需要同步
+5. `docs/prd-healing-life.md` 是否需要同步
+6. `开发SOP.md` 是否需要同步
+7. `docs/decisions.md` 是否需要新增或调整状态
+8. `docs/iteration-log.md` 是否已补本次迭代摘要
+9. `agent.md` 中的当前状态、风险、推荐阅读顺序是否仍然准确

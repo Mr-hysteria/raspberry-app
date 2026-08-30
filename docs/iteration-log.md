@@ -15,6 +15,53 @@
 
 ---
 
+## 2026-08-30 - 每日阅读屏改版
+
+### 目标
+
+- 把书桌屏幕从目标压力型海报改造成低唤醒的每日阅读屏
+- 用可验证的仓库内证据补齐架构、操作和产品文档
+
+### 完成项
+
+- 用每日中文古诗文片段替代旧版阅读内容路线
+- 引入五条白名单分类路由、日期稳定选路、双槽 JSON 缓存和内置回退诗句
+- 用程序化背景替代远程图片依赖
+- 新增白天轻触开始仪式，并保留夜间 `23:30–07:00` DPMS 息屏与 `60` 秒触摸唤醒
+- 新增 `docs/architecture.md`，并同步更新入口文档、PRD、决策记录和开发 SOP
+
+### 当前可引用证据
+
+- Task 3 实施记录中的主 Rust 测试为 `34` 个，覆盖阅读链路、缓存、开始仪式、背景和夜间逻辑
+- 当前仓库可通过 `cargo check --example render-preview` 和 `./scripts/render-previews.sh OUTPUT_DIR` 生成三张 `800×480` 预览；本次文档整理时已实际生成 `reading-day.png`、`reading-focus.png`、`reading-night.png`
+- 预览链路复用生产组件，并由 example 测试锁定默认字体为 `WenQuanYi Zen Hei`
+- 真机无代理实测记录：今日诗词读书端点返回 `HTTP 200`；AIC IIIF 图片请求返回 `HTTP 403`
+- 改版前基线记录：RSS 约 `23MB`，旧图缓存约 `2.67MB`
+
+### 影响范围
+
+- `src/main.rs`
+- `src/daily_reading.rs`
+- `src/background.rs`
+- `src/domain.rs`
+- `src/display_power.rs`
+- `ui/clock.slint`
+- `examples/render-preview.rs`
+- `scripts/render-previews.sh`
+- 产品与维护文档
+
+### 遗留项
+
+- 最终部署后的 RSS、缓存大小、进程存活和真机截图仍待补录
+- 白天开始仪式与夜间 DPMS 的最终设备表现要以部署后验证为准
+- 文档中不能把仓库内验证误写成已完成部署
+
+### 下一步建议
+
+- 部署 release 到目标设备后补充真实截图、缓存文件、RSS 和进程状态记录
+- 观察一周内今日诗词接口可用性与内容过滤命中情况
+- 如真机触摸与 DPMS 组合出现差异，再针对输入链路做专项排查
+
 ## 2026-07-01 - 鼠标光标隐藏兼容修复
 
 ### 目标

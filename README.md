@@ -1,147 +1,123 @@
-# Raspberry Pi 专注时钟
+# Raspberry Pi 每日阅读屏
 
-这是一个针对 `Raspberry Pi Zero 2 W` 优化的全屏专注时钟项目，采用 `Rust + Slint` 原生实现，不依赖 `Chromium`。
+这是一个针对 `Raspberry Pi Zero 2 W` 优化的全屏阅读摆件项目，采用 `Rust + Slint` 原生实现，不依赖 `Chromium`。当前版本把时间保留为稳定视觉锚点，用每日古诗文片段、确定性的程序化背景和极轻的轻触开始仪式，降低开始阅读的心理门槛。
 
 ## 目标设备
 
 - 树莓派型号：`Raspberry Pi Zero 2 W`
 - 内存：`512MB`
-- 屏幕分辨率：`800x480`
+- 屏幕分辨率：`800×480`
 - 系统：`Debian 13 (Trixie) 64-bit`
+- 显示环境：`X11`
 
-## 为什么改成 Slint
+## 当前体验
 
-原先的 `HTML + Chromium` 方案虽然实现快，但对 `512MB` 内存设备不够友好。这个项目现在改成了 `Slint` 原生界面：
+- 显示 `HH:MM` 大时钟、弱化秒数、完整日期与星期
+- 显示“今日一页”中文诗句，以及“作者《作品》 · 分类”来源行
+- 白天轻触切换开始仪式文案；夜间轻触只负责临时亮屏 `60` 秒
+- 每天 `23:30–07:00` 通过 X11 DPMS 自动息屏
+- 使用程序化色板和圆角形状绘制背景，不请求、不解码、不缓存远程图片
+- 每天只请求一个今日诗词接口；同日成功后不再重复请求，失败后至少 `15` 分钟再试
+- 本地缓存保留 `current` / `previous` 两条阅读内容；无缓存或缓存损坏时回退到内置诗句
+- 提供与生产 UI 共用组件的预览命令，可生成普通、开始、夜间三张 `800×480` 截图
+- LightDM/LXDE 桌面登录后自动启动，并由守护脚本负责异常退出恢复
 
-- 常驻内存更低
-- 无浏览器首次运行弹窗
-- 不依赖 Node.js
-- 更适合后续做开机直启
+## 内容来源
+
+程序只会从下面五个白名单接口里，按本地日期稳定选择当天分类：
+
+- `https://v1.jinrishici.com/rensheng/dushu.json`
+- `https://v1.jinrishici.com/rensheng/zheli.json`
+- `https://v1.jinrishici.com/shanshui.json`
+- `https://v1.jinrishici.com/shenghuo/tianyuan.json`
+- `https://v1.jinrishici.com/rensheng/lizhi.json`
+
+响应必须同时包含非空的 `content`、`origin`、`author` 和 `category`。内容超过 `40` 个 Unicode 字符，或命中负向词过滤时会被拒绝展示，并保留当前内容。
 
 ## 项目结构
 
 ```text
-Cargo.toml            Rust 依赖与构建配置
-build.rs              编译 Slint UI
-src/main.rs           时钟逻辑
-ui/clock.slint        全屏界面
-run-clock.sh          运行脚本
-scripts/bootstrap-pi.sh  树莓派初始化脚本
+Cargo.toml                    Rust 依赖与构建配置
+build.rs                      编译 Slint UI
+src/main.rs                   应用入口、时钟刷新、后台线程与 Slint 绑定
+src/daily_reading.rs          今日阅读请求、过滤、双槽缓存与离线回退
+src/background.rs             程序化背景色板与日期稳定选择
+src/domain.rs                 夜间窗口判断与开始仪式状态
+src/display_power.rs          X11 DPMS 状态协调与 60 秒唤醒逻辑
+ui/clock.slint                800×480 固定布局与视觉样式
+examples/render-preview.rs    生产组件预览示例
+scripts/render-previews.sh    生成三张 800×480 PNG 预览
+run-clock.sh                  树莓派桌面环境启动脚本
+scripts/bootstrap-pi.sh       树莓派初始化脚本
+scripts/install-autostart.sh  安装桌面自启动项
+scripts/watch-clock.sh        异常退出自动恢复
+scripts/deploy-and-run-pi.sh  本地交叉编译、上传并远程启动
+tests/*.sh                    启动、自启动与守护脚本检查
+docs/architecture.md          当前架构与状态流
 ```
 
-## 文档入口
+## 快速开始
 
-如果是第一次接手这个仓库，建议优先看下面这些文档：
-
-- `README.md`：项目概览、启动方式、当前特性
-- `agent.md`：面向后续 agent / 开发者的协作入口、上下文索引、文档更新契约
-- `开发SOP.md`：开发、交叉编译、部署到树莓派的操作说明
-- `docs/prd-healing-life.md`：面向“愈见·生活”方向的产品需求文档 v2
-- `docs/decisions.md`：关键技术决策记录
-- `docs/iteration-log.md`：每次迭代的目标、完成项、遗留项与后续建议
-
-每次迭代结束后，建议至少检查上述文档是否需要同步更新，避免项目知识只留在对话或提交记录里。
-
-## 首次安装
-
-在树莓派项目目录执行：
+初始化树莓派环境：
 
 ```bash
-cd /home/raspberry/Desktop/code/raspberry-app
 chmod +x scripts/bootstrap-pi.sh run-clock.sh
 ./scripts/bootstrap-pi.sh
 ```
 
-这个脚本会完成：
-
-```text
-1. 通过 rsproxy 安装 stable Rust 工具链
-2. 安装 Slint 所需的 X11 / fontconfig 依赖
-3. 优先尝试 release 编译
-4. 如果 release 因内存不足失败，则自动回退到 debug 编译
-```
-
-## 启动时钟
+本地构建：
 
 ```bash
-cd /home/raspberry/Desktop/code/raspberry-app
+cargo build --release
+```
+
+在树莓派桌面环境运行：
+
+```bash
 ./run-clock.sh
 ```
 
-`run-clock.sh` 会：
-
-```text
-1. 关闭屏保、自动黑屏和 DPMS
-2. 尝试隐藏鼠标光标
-3. 优先启动 target/release/raspberry-clock
-4. 若 release 不存在，则自动启动 target/debug/raspberry-clock
-5. 使用 Slint software renderer 全屏显示
-
-## 开机自动启动
-
-初始化脚本和部署脚本都会安装桌面自启动项：
-
-```text
-~/.config/autostart/raspberry-clock.desktop
-```
-
-LightDM 自动登录进入 LXDE 桌面后，会自动执行轻量守护脚本。守护脚本启动 `run-clock.sh`，并在时钟被系统终止或异常退出后 3 秒自动恢复，无需再通过 SSH 手动启动。
-
-也可以单独安装或修复自启动配置：
+生成三张预览图：
 
 ```bash
-./scripts/install-autostart.sh
-```
+cargo check --example render-preview
+./scripts/render-previews.sh ./tmp/previews
 ```
 
-如果你在 Mac 本地开发并希望一键交叉编译、上传并远程启动，可以在仓库根目录执行：
+输出目录中会得到：
+
+- `reading-day.png`
+- `reading-focus.png`
+- `reading-night.png`
+
+## 部署
+
+如果你在本地开发机上交叉编译并上传到树莓派，可以在仓库根目录执行：
 
 ```bash
 ./scripts/deploy-and-run-pi.sh
 ```
 
-脚本默认会优先使用本机 SSH 别名 `raspberry-clock`。
+常用覆盖参数：
 
-也支持环境变量覆盖：
+- `PI_SSH_HOST=<ssh-alias> ./scripts/deploy-and-run-pi.sh`
+- `PI_HOST=<device-host-or-ip> ./scripts/deploy-and-run-pi.sh`
+- `PI_REMOTE_GIT_PULL=1 ./scripts/deploy-and-run-pi.sh`
 
-```bash
-PI_SSH_HOST=raspberry-clock ./scripts/deploy-and-run-pi.sh
-PI_HOST=192.168.1.12 ./scripts/deploy-and-run-pi.sh
-PI_PASSWORD='your-password' ./scripts/deploy-and-run-pi.sh
-PI_REMOTE_GIT_PULL=1 ./scripts/deploy-and-run-pi.sh
-```
+更完整的开发、交叉编译、部署与排障说明见 `开发SOP.md`。
 
-## 当前特性
+## 文档入口
 
-- 原生全屏沉浸式海报界面
-- 显示时、分、秒
-- 显示日期与星期
-- 显示本年度剩余百分比
-- 显示距离下一次 8 月 29 日 CPA 考试的天数
-- 按本地自然日请求金山词霸每日一句，显示英文、中文和背景图
-- 每日一句使用本地缓存，断网时继续显示上次成功内容
-- 当天请求失败或上游尚未更新时，每 15 分钟重试
-- 每天 23:30–07:00 自动息屏
-- 夜间触摸可临时唤醒 60 秒，再次触摸会重新计时
-- 支持昼夜主题切换
-- 中文字体显示
-- 针对 `800x480` 小屏布局优化
-- 软件渲染，无需 GPU 加速
-- LightDM/LXDE 桌面登录后自动启动
+建议按下面顺序建立上下文：
 
-## 可清理的旧方案
+- `README.md`：项目概览、启动方式、当前特性
+- `agent.md`：后续协作者的上下文入口、约束和文档更新契约
+- `docs/architecture.md`：模块职责、状态流、缓存和交互链路
+- `开发SOP.md`：开发、预览、部署和缓存排障
+- `docs/prd-healing-life.md`：当前产品需求文档 `v3`
+- `docs/decisions.md`：关键技术决策记录
+- `docs/iteration-log.md`：迭代历史与已知证据
 
-项目已经不再需要以下旧路线组件：
+## 历史迁移说明
 
-- `Chromium`
-- `Nginx`
-- `src/index.html`
-
-如果系统中仍保留这些包，可以在确认新程序运行正常后卸载。
-
-推荐清理命令：
-
-```bash
-sudo apt purge -y chromium chromium-common chromium-l10n chromium-sandbox rpi-chromium-mods nginx nginx-common
-sudo apt autoremove -y
-```
+当前运行时只维护 `daily-reading.json`。如果历史版本遗留了旧缓存命名或旧界面认知，请优先查看 `docs/architecture.md` 和 `开发SOP.md` 中的历史兼容章节，再决定是否清理旧文件。

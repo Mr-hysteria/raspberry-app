@@ -1,269 +1,239 @@
-# 开发 SOP — Raspberry Pi 全屏时钟
+# 开发 SOP — Raspberry Pi 每日阅读屏
 
-目标设备：Raspberry Pi Zero 2W · 512MB · Debian 13 (Trixie) 64-bit · 800×480
+目标设备：`Raspberry Pi Zero 2 W` · `512MB` · `Debian 13 (Trixie) 64-bit` · `800×480` · `X11`
 
----
+## 0. 适用范围
 
-## 0. SSH 连接树莓派
+这份 SOP 只覆盖当前每日阅读屏路线：
 
-如果你只是想先连上树莓派，推荐先做下面几步。
+- `Rust + Slint` 原生应用
+- 五条固定今日诗词接口
+- `daily-reading.json` 双槽缓存
+- 程序化背景
+- X11 DPMS 夜间息屏
 
-### 0.1 确认树莓派 IP
+如果你在排查历史版本遗留问题，请直接跳到文末“历史兼容与缓存排障”。
 
-如果你记得设备 IP，可以直接跳到下一步。
+## 1. 本地开发与构建
 
-如果不记得，可以在树莓派本机终端执行：
+### 1.1 常用入口文件
+
+- `src/main.rs`：应用入口、后台线程、状态绑定
+- `src/daily_reading.rs`：阅读请求、过滤、缓存
+- `src/background.rs`：程序化背景色板
+- `src/domain.rs`：开始仪式与夜间窗口
+- `src/display_power.rs`：DPMS 协调
+- `ui/clock.slint`：`800×480` 固定布局
+
+### 1.2 本地构建
 
 ```bash
-hostname -I
+cargo build
+cargo build --release
 ```
 
-也可以在路由器后台查看树莓派分配到的局域网 IP。
-
-> 当前历史示例里使用过 `192.168.1.12`，但真实 IP 可能已经变化，建议每次以当前设备实际 IP 为准。
-
-### 0.2 从开发机测试 SSH 是否可连
-
-在 Mac 本机执行：
+### 1.3 交叉编译
 
 ```bash
-ssh raspberry@<树莓派IP>
+PKG_CONFIG_ALLOW_CROSS=1 cargo build --release --target aarch64-unknown-linux-gnu
 ```
 
-首次连接通常会看到主机指纹确认，输入：
+产物路径：
 
 ```text
-yes
+target/aarch64-unknown-linux-gnu/release/raspberry-clock
 ```
 
-随后输入树莓派账号密码即可登录。
+## 2. 预览与视觉检查
 
-### 0.3 登录成功后的常用检查
+预览链路复用生产组件，而不是单独维护一套 mock UI。
 
-登录后建议先执行：
+先检查示例能编译：
+
+```bash
+cargo check --example render-preview
+```
+
+再生成三张 `800×480` PNG：
+
+```bash
+./scripts/render-previews.sh ./tmp/previews
+```
+
+输出文件：
+
+- `reading-day.png`
+- `reading-focus.png`
+- `reading-night.png`
+
+这一步适合在改动 `ui/clock.slint`、`src/background.rs`、`src/main.rs` 的阅读内容绑定后执行。
+
+## 3. 部署到树莓派
+
+### 3.1 推荐方式
+
+```bash
+./scripts/deploy-and-run-pi.sh
+```
+
+常用覆盖参数：
+
+- `PI_SSH_HOST=<ssh-alias> ./scripts/deploy-and-run-pi.sh`
+- `PI_HOST=<device-host-or-ip> ./scripts/deploy-and-run-pi.sh`
+- `PI_REMOTE_GIT_PULL=1 ./scripts/deploy-and-run-pi.sh`
+
+建议优先使用 SSH key 或 SSH alias，不在文档中传播口令式流程。
+
+### 3.2 远程运行前检查
+
+登录设备后建议先确认：
 
 ```bash
 whoami
 pwd
 uname -a
-echo $DISPLAY
+echo "$DISPLAY"
 ```
 
-如果只是远程维护文件或执行命令，`DISPLAY` 为空是正常的。
-如果你要远程启动桌面上的全屏程序，则需要在启动命令里显式传入 `DISPLAY=:0` 和 `XAUTHORITY=/home/raspberry/.Xauthority`。
-
-### 0.4 推荐改成 SSH key 连接（可选，但建议）
-
-如果你不想每次输密码，可以在 Mac 本机生成并写入公钥：
+如果只是维护文件或执行构建，`DISPLAY` 为空是正常的。需要远程启动桌面全屏程序时，再显式提供：
 
 ```bash
-ssh-keygen -t ed25519
-ssh-copy-id raspberry@<树莓派IP>
+DISPLAY=:0 XAUTHORITY="${HOME}/.Xauthority"
 ```
 
-如果系统没有 `ssh-copy-id`，也可以手动追加到树莓派的 `~/.ssh/authorized_keys`。
+### 3.3 设备本机启动
 
-后续即可直接：
-
-```bash
-ssh raspberry@<树莓派IP>
-```
-
-### 0.5 连接失败时先检查
-
-- 树莓派和开发机是否在同一局域网
-- 树莓派是否已经启用 SSH
-- IP 是否变化
-- 用户名是否仍为 `raspberry`
-- 防火墙或路由器是否拦截了 22 端口
-
-如果树莓派本机还没启用 SSH，可在树莓派上执行：
+在树莓派桌面终端进入仓库根目录后执行：
 
 ```bash
-sudo systemctl enable ssh
-sudo systemctl start ssh
-sudo systemctl status ssh
-```
-
----
-
-## 1. 开发 → 编译 → 部署
-
-### 1.1 修改代码
-
-| 文件 | 用途 |
-|------|------|
-| `src/main.rs` | 时钟逻辑、时间读取、定时刷新 |
-| `ui/clock.slint` | 全屏 UI 布局、字体、颜色 |
-| `Cargo.toml` | 依赖版本管理 |
-
-### 1.2 交叉编译（在 Mac 本地执行，树莓派无需安装 Rust）
-
-```bash
-source ~/.cargo/env
-cd ~/Desktop/code/raspberry-app
-
-PKG_CONFIG_ALLOW_CROSS=1 cargo build --release --target aarch64-unknown-linux-gnu
-```
-
-产物路径：`target/aarch64-unknown-linux-gnu/release/raspberry-clock`
-
-> 首次编译约 4 分钟（下载并编译全部依赖）；后续增量编译通常在 30 秒内。
-
-### 1.3 部署到树莓派
-
-```bash
-sshpass -p 'tang19971226' scp \
-  target/aarch64-unknown-linux-gnu/release/raspberry-clock \
-  raspberry@192.168.1.12:/home/raspberry/Desktop/code/raspberry-app/target/release/raspberry-clock
-```
-
-### 1.4 一键交叉编译 + 上传 + 远程启动（推荐）
-
-```bash
-cd ~/Desktop/code/raspberry-app
-./scripts/deploy-and-run-pi.sh
-```
-
-这个脚本会自动完成：
-
-1. 本地交叉编译 `aarch64-unknown-linux-gnu`
-2. 确保树莓派上的目标目录存在
-3. 同步 `run-clock.sh` 和 `scripts/bootstrap-pi.sh`
-4. 上传最新二进制
-5. 远程启动全屏程序
-6. 打印如何停止远程程序和如何查看远程日志
-
-常用可选参数：
-
-```bash
-PI_SSH_HOST=raspberry-clock ./scripts/deploy-and-run-pi.sh
-PI_HOST=192.168.1.12 ./scripts/deploy-and-run-pi.sh
-PI_PASSWORD='your-password' ./scripts/deploy-and-run-pi.sh
-PI_REMOTE_GIT_PULL=1 ./scripts/deploy-and-run-pi.sh
-```
-
-说明：
-
-- 如果本机 `~/.ssh/config` 中已经配置了 `raspberry-clock`，脚本会默认优先使用这个 SSH 别名
-- 如果你已经配置了 SSH key，直接运行脚本即可
-- 如果还在使用密码登录，可以通过 `PI_PASSWORD` 传入密码
-- `PI_REMOTE_GIT_PULL=1` 会在上传前对树莓派上的仓库执行一次 `git pull --ff-only`
-- 默认情况下脚本不依赖远程 `git pull`，因为它会直接同步运行脚本和二进制
-
----
-
-## 2. 在树莓派上运行
-
-### 2.1 SSH 远程启动（Mac 执行）
-
-推荐的通用写法：
-
-```bash
-ssh raspberry@<树莓派IP> \
-  "DISPLAY=:0 XAUTHORITY=/home/raspberry/.Xauthority \
-   bash /home/raspberry/Desktop/code/raspberry-app/run-clock.sh &"
-```
-
-如果你当前环境仍然依赖密码直连，也可以继续使用历史上的 `sshpass` 方式：
-
-```bash
-sshpass -p 'tang19971226' ssh raspberry@192.168.1.12 \
-  "DISPLAY=:0 XAUTHORITY=/home/raspberry/.Xauthority \
-   bash /home/raspberry/Desktop/code/raspberry-app/run-clock.sh &"
-```
-
-### 2.2 树莓派本机启动
-
-登录到树莓派桌面终端后执行：
-
-```bash
-cd /home/raspberry/Desktop/code/raspberry-app
 ./run-clock.sh
 ```
 
 `run-clock.sh` 会自动完成：
-- 关闭屏保 / DPMS 自动熄屏
-- 隐藏鼠标光标（需安装 `unclutter`）
-- 杀掉已有的旧进程，避免重复启动
-- 全屏运行 `target/release/raspberry-clock`
 
-当前 Debian 13 安装的是经典版 `unclutter` 8.x，启动参数必须使用：
+- 关闭屏保与自动 DPMS 超时
+- 启动 `unclutter`
+- 清理旧的 `raspberry-clock` 进程
+- 优先运行 `target/release/raspberry-clock`
+- 找不到 release 时回退到 `target/debug/raspberry-clock`
+
+当前 Debian 13 使用的是经典版 `unclutter` 8.x，启动参数必须保持：
 
 ```bash
 unclutter -idle 1 -jitter 1 -root
 ```
 
-不要改成 `--timeout`、`--jitter`、`--fork`。这些是 `unclutter-xfixes` 风格参数，经典版收到后会直接退出，导致鼠标光标一直显示。可通过 `pgrep -af unclutter` 确认隐藏进程是否存活。
-
----
-
-## 3. 关闭程序
-
-### 3.1 SSH 远程关闭（Mac 执行）
-
-推荐的通用写法：
+可通过下面命令确认鼠标隐藏进程仍然存活：
 
 ```bash
-ssh raspberry@<树莓派IP> \
-  "pkill -f raspberry-clock && echo '已关闭'"
+pgrep -af unclutter
 ```
 
-如果你当前环境仍然依赖密码直连，也可以继续使用历史上的 `sshpass` 方式：
+## 4. 运行时缓存与离线排障
+
+### 4.1 缓存位置
+
+当前缓存目录固定为：
+
+```text
+~/.cache/raspberry-clock
+```
+
+当前活动缓存文件为：
+
+```text
+~/.cache/raspberry-clock/daily-reading.json
+```
+
+### 4.2 安全查看缓存
 
 ```bash
-sshpass -p 'tang19971226' ssh raspberry@192.168.1.12 \
-  "pkill -f raspberry-clock && echo '已关闭'"
+cache_dir="${HOME}/.cache/raspberry-clock"
+ls -l "$cache_dir"
+python -m json.tool "$cache_dir/daily-reading.json"
 ```
 
-### 3.2 树莓派本机关闭
+如果设备没有 `python`，可以改用：
+
+```bash
+jq . "$cache_dir/daily-reading.json"
+```
+
+### 4.3 安全清理当前缓存
+
+只删除当前 JSON 文件，不删除整个缓存目录：
+
+```bash
+cache_dir="${HOME}/.cache/raspberry-clock"
+rm -f "$cache_dir/daily-reading.json"
+```
+
+下次启动或下次刷新时，程序会回退到内置诗句，并在可联网时重新拉取内容。
+
+### 4.4 看到旧缓存命名时的安全处理
+
+这一步只用于历史版本兼容排障。先确认目录内容，再定点删除已知旧文件名：
+
+```bash
+cache_dir="${HOME}/.cache/raspberry-clock"
+ls -l "$cache_dir"
+rm -f \
+  "$cache_dir/daily-quote.json" \
+  "$cache_dir/daily-quote.new.tmp" \
+  "$cache_dir/daily-quote.jpg" \
+  "$cache_dir/daily-quote.jpeg" \
+  "$cache_dir/daily-quote.png" \
+  "$cache_dir/daily-quote.webp" \
+  "$cache_dir/daily-quote.gif" \
+  "$cache_dir/daily-quote.new.jpg" \
+  "$cache_dir/daily-quote.new.jpeg" \
+  "$cache_dir/daily-quote.new.png" \
+  "$cache_dir/daily-quote.new.webp" \
+  "$cache_dir/daily-quote.new.gif" \
+  "$cache_dir/daily-quote.previous.jpg" \
+  "$cache_dir/daily-quote.previous.jpeg" \
+  "$cache_dir/daily-quote.previous.png" \
+  "$cache_dir/daily-quote.previous.webp" \
+  "$cache_dir/daily-quote.previous.gif"
+```
+
+不要执行针对 `~/.cache/raspberry-clock` 的整目录删除。
+
+## 5. 关闭与重启
+
+设备本机关闭：
 
 ```bash
 pkill -f raspberry-clock
 ```
 
----
-
-## 4. 一键开发部署脚本（可选）
-
-把编译 + 部署合并成一条命令，方便日常使用：
+远程关闭：
 
 ```bash
-source ~/.cargo/env && \
-PKG_CONFIG_ALLOW_CROSS=1 cargo build --release --target aarch64-unknown-linux-gnu && \
-sshpass -p 'tang19971226' scp \
-  target/aarch64-unknown-linux-gnu/release/raspberry-clock \
-  raspberry@192.168.1.12:/home/raspberry/Desktop/code/raspberry-app/target/release/raspberry-clock && \
-sshpass -p 'tang19971226' ssh raspberry@192.168.1.12 \
-  "DISPLAY=:0 XAUTHORITY=/home/raspberry/.Xauthority \
-   bash /home/raspberry/Desktop/code/raspberry-app/run-clock.sh &" && \
-echo "✅ 部署并启动完成"
+ssh <device-host> "pkill -f raspberry-clock"
 ```
 
----
+关闭后再次运行 `./run-clock.sh` 即可重启。
 
-## 5. 环境依赖备忘
+## 6. 仓库内验证命令
 
-| 工具 | 版本 | 安装方式 |
-|------|------|---------|
-| Rust stable | 1.94+ | `curl https://rsproxy.cn/rustup-init.sh \| sh` |
-| aarch64 交叉工具链 | 15.2 | `brew install messense/macos-cross-toolchains/aarch64-unknown-linux-gnu` |
-| sshpass | - | `brew install sshpass` |
-| aarch64 编译目标 | - | `rustup target add aarch64-unknown-linux-gnu` |
-
-### 5.1 推荐保存一个 SSH 别名（可选）
-
-如果你经常连接同一台树莓派，可以在 Mac 的 `~/.ssh/config` 中增加：
-
-```sshconfig
-Host raspberry-clock
-  HostName <树莓派IP>
-  User raspberry
-```
-
-之后可以直接：
+文档、代码或脚本变更后，至少按需执行下面这些命令：
 
 ```bash
-ssh raspberry-clock
-scp <本地文件> raspberry-clock:<远程路径>
+cargo fmt --check
+cargo test
+./tests/install-autostart.sh
+./tests/run-clock-config.sh
+./tests/watch-clock-config.sh
+cargo build --release
+PKG_CONFIG_ALLOW_CROSS=1 cargo build --release --target aarch64-unknown-linux-gnu
+cargo check --example render-preview
+./scripts/render-previews.sh ./tmp/previews
+git diff --check
 ```
+
+如果本次变更涉及当前文档，请额外执行本轮约定的一致性关键词检查。预期结果是：命中只能出现在明确标注的历史兼容或迁移上下文中，不能出现在当前功能描述里。
+
+## 7. 历史兼容与缓存排障
+
+历史版本曾使用不同的缓存命名和远程图片路线。当前仓库仍保留对旧缓存文件的定点清理逻辑，目的是避免迁移后残留文件继续占空间或误导排障判断；这些名字不代表现行产品能力。
