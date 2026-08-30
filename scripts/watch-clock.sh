@@ -17,7 +17,7 @@ trap cleanup EXIT
 trap 'exit 0' INT TERM
 
 while true; do
-    "${PROJECT_DIR}/run-clock.sh"
+    "${PROJECT_DIR}/run-clock.sh" 9>&-
     exit_code=$?
     echo "raspberry-clock exited with status ${exit_code}; restarting in 3 seconds" >&2
     sleep 3

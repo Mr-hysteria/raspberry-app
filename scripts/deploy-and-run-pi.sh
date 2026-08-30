@@ -96,7 +96,8 @@ scp_cmd "${LOCAL_BINARY_PATH}" "${REMOTE_PROJECT_REF}:${REMOTE_BINARY_STAGING_PA
 
 echo "==> Replacing the running binary"
 ssh_cmd "${REMOTE_PROJECT_REF}" \
-    "pkill -KILL -f '[w]atch-clock.sh' >/dev/null 2>&1 || true"
+    "pkill -KILL -f '[w]atch-clock.sh' >/dev/null 2>&1 || true; \
+     pkill -x 'unclutter' >/dev/null 2>&1 || true"
 
 ssh_cmd "${REMOTE_PROJECT_REF}" \
     "chmod +x '${REMOTE_RUN_SCRIPT}' '${REMOTE_BOOTSTRAP_SCRIPT}' '${REMOTE_AUTOSTART_SCRIPT}' '${REMOTE_WATCH_SCRIPT}' '${REMOTE_BINARY_STAGING_PATH}'; \
