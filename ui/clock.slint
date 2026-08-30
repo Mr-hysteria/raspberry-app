@@ -13,6 +13,7 @@ export component AppWindow inherits Window {
     in-out property <color> accent-color: #997c53;
     in-out property <int> scene-variant: 0;
     in-out property <bool> night-mode: false;
+    in-out property <string> ui-font-family: "WenQuanYi Zen Hei";
 
     callback screen-tapped();
 
@@ -77,7 +78,7 @@ export component AppWindow inherits Window {
             height: 28px;
             text: root.date-weekday-text;
             color: root.text-muted-color;
-            font-family: "WenQuanYi Zen Hei";
+            font-family: root.ui-font-family;
             font-size: 22px;
             font-weight: 500;
             vertical-alignment: center;
@@ -90,7 +91,7 @@ export component AppWindow inherits Window {
             height: 132px;
             text: root.time-text;
             color: root.text-primary-color;
-            font-family: "WenQuanYi Zen Hei";
+            font-family: root.ui-font-family;
             font-size: 112px;
             font-weight: 600;
             vertical-alignment: center;
@@ -103,7 +104,7 @@ export component AppWindow inherits Window {
             height: 26px;
             text: root.seconds-text;
             color: root.text-muted-color;
-            font-family: "WenQuanYi Zen Hei";
+            font-family: root.ui-font-family;
             font-size: 22px;
             font-weight: 500;
             horizontal-alignment: center;
@@ -117,7 +118,7 @@ export component AppWindow inherits Window {
             height: 26px;
             text: "今日一页";
             color: root.accent-color;
-            font-family: "WenQuanYi Zen Hei";
+            font-family: root.ui-font-family;
             font-size: 20px;
             font-weight: 600;
             vertical-alignment: center;
@@ -139,7 +140,7 @@ export component AppWindow inherits Window {
             height: 104px;
             text: root.reading-content;
             color: root.focus-active ? root.text-muted-color : root.text-primary-color;
-            font-family: "WenQuanYi Zen Hei";
+            font-family: root.ui-font-family;
             font-size: 31px;
             font-weight: 500;
             wrap: word-wrap;
@@ -153,7 +154,7 @@ export component AppWindow inherits Window {
             height: 28px;
             text: root.reading-source;
             color: root.focus-active ? root.text-muted-color : root.text-primary-color;
-            font-family: "WenQuanYi Zen Hei";
+            font-family: root.ui-font-family;
             font-size: 20px;
             font-weight: 500;
             vertical-alignment: center;
@@ -167,7 +168,7 @@ export component AppWindow inherits Window {
             height: 26px;
             text: root.focus-active ? "已经开始了，先读一页就好" : "轻触一下，先读一页";
             color: root.focus-active ? root.text-primary-color : root.text-muted-color;
-            font-family: "WenQuanYi Zen Hei";
+            font-family: root.ui-font-family;
             font-size: 20px;
             font-weight: 500;
             vertical-alignment: center;
