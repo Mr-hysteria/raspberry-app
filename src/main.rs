@@ -243,7 +243,7 @@ fn truncate_origin(origin: &str) -> String {
 
     origin
         .chars()
-        .take(MAX_SOURCE_CHARS - 1)
+        .take(MAX_SOURCE_CHARS)
         .chain(std::iter::once('…'))
         .collect()
 }
@@ -322,7 +322,7 @@ mod tests {
     }
 
     #[test]
-    fn format_reading_source_truncates_origin_to_twenty_unicode_characters() {
+    fn format_reading_source_keeps_first_twenty_unicode_characters_then_ellipsis() {
         let reading = DailyReading {
             content: "知之者不如好之者。".to_string(),
             origin: "甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌".to_string(),
@@ -333,7 +333,7 @@ mod tests {
 
         assert_eq!(
             format_reading_source(&reading),
-            "孔子《甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申…》 · 哲理"
+            "孔子《甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉…》 · 哲理"
         );
     }
 }
