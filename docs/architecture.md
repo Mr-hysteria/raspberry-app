@@ -231,7 +231,13 @@ DPMS 具体命令由 `src/display_power.rs` 执行：
 
 这条链路的作用不是替代真机验证，而是让布局、字体和提示切换在仓库内就可复现、可对比。
 
-## 11. 历史兼容
+## 11. 进程守护与锁边界
+
+`scripts/watch-clock.sh` 用 FD 9 对 `/tmp/raspberry-clock-watch.lock` 加独占锁，避免同一桌面会话出现多个 watcher。调用 `run-clock.sh` 时必须使用 `9>&-`：锁只属于 watcher，不得被时钟或 `unclutter` 继承。
+
+部署脚本会先停止旧 watcher 和 `unclutter`，再替换二进制、安装自启动并拉起新 watcher。这一步也负责回收修复前版本已经由 `unclutter` 持有的历史锁。
+
+## 12. 历史兼容
 
 当前运行时只维护 `daily-reading.json`。之所以仍保留对历史文件名的清理，是为了迁移后自动回收旧版缓存占用，并减少排障歧义。相关清理目标只存在于兼容逻辑中，例如：
 

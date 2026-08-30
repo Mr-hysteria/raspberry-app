@@ -353,15 +353,15 @@
 
 ## Final verification and deployment
 
-- [ ] Run `cargo fmt --check`.
-- [ ] Run `cargo test` and record the exact passed-test count.
-- [ ] Run every `tests/*.sh` script and record the exact passed-script count.
-- [ ] Run `cargo build --release`.
-- [ ] Run `cargo build --release --target aarch64-unknown-linux-gnu`.
-- [ ] Run `cargo check --example render-preview` and regenerate/inspect all three 800×480 PNGs.
-- [ ] Run `git diff --check`, `git status --short`, and inspect the complete branch diff against its merge base.
-- [ ] Dispatch a whole-branch code review; fix every Critical/Important issue and re-review the fix range once.
-- [ ] Deploy through `scripts/deploy-and-run-pi.sh` or an equivalent explicit binary upload/restart sequence.
-- [ ] On the Pi, verify the running executable, `800×480` screenshot, online `daily-reading.json`, absence of legacy image cache, RSS, process uptime, no-proxy API response, white-space/clipping, start ritual touch behavior and X11 DPMS command path.
-- [ ] Re-run the relevant automated commands after any review or true-device fix.
-- [ ] Update `docs/iteration-log.md` with final measured evidence and commit it.
+- [x] Run `cargo fmt --check`.
+- [x] Run `cargo test` and record the exact passed-test count.
+- [x] Run every `tests/*.sh` script and record the exact passed-script count.
+- [x] Run `cargo build --release`.
+- [x] Run `cargo build --release --target aarch64-unknown-linux-gnu`.
+- [x] Run `cargo check --example render-preview` and regenerate/inspect all three 800×480 PNGs.
+- [x] Run `git diff --check`, `git status --short`, and inspect the complete branch diff against its merge base.
+- [x] Dispatch a whole-branch code review; fix every Critical/Important issue and re-review the fix range once.
+- [x] Deploy through `scripts/deploy-and-run-pi.sh` or an equivalent explicit binary upload/restart sequence.
+- [x] On the Pi, verify the running executable, `800×480` screenshot, online `daily-reading.json`, absence of legacy image cache, RSS, process uptime, no-proxy API response, white-space/clipping, start ritual touch behavior and X11 DPMS command path.
+- [x] Re-run the relevant automated commands after any review or true-device fix.
+- [x] Update `docs/iteration-log.md` with final measured evidence and commit it.

@@ -34,14 +34,20 @@
 - `daily-reading.json` 原子提交后，旧缓存定点清理改为记录错误但保持本次阅读成功；不扩大删除目标
 - 背景测试覆盖全部四套日间、四套夜间色板及四组明暗关系
 - 移除 Slint 直接依赖中冗余的 `software-renderer-systemfonts`，系统字体能力仍由 winit/software renderer 特性链启用
+- 修复 watcher 锁 FD 被 `unclutter` 继承的问题，并让部署脚本定点结束历史版本遗留的辅助进程
+- 将最终 ARM64 release 部署到真机，完成在线内容、缓存迁移、字体、布局、X11 点击、DPMS 与进程守护验收
 
 ### 当前可引用证据
 
 - 最终复审后 `cargo test` 为 `38 passed; 0 failed`；`cargo test --example render-preview` 为 `6 passed; 0 failed`；仓库内 `3` 个 Shell 测试脚本全部通过
 - 当前仓库可通过 `cargo check --example render-preview` 和 `./scripts/render-previews.sh OUTPUT_DIR` 生成三张 `800×480` 预览；最终复审已用本机安装的 `WenQuanYi Zen Hei` 重新生成并人工检查 `reading-day.png`、`reading-focus.png`、`reading-night.png`
 - 预览链路复用生产组件，并由 example 测试锁定默认字体为 `WenQuanYi Zen Hei`
-- 真机无代理实测记录：今日诗词读书端点返回 `HTTP 200`；AIC IIIF 图片请求返回 `HTTP 403`
-- 改版前基线记录：RSS 约 `23MB`，旧图缓存约 `2.67MB`
+- 真机无代理实测：今日诗词端点返回 `HTTP 200`，连接约 `0.040s`、完整响应约 `0.259s`、响应 `159B`；AIC IIIF 图片请求仍为 `HTTP 403`
+- 真机活动缓存 `daily-reading.json` 为 `216B`，日期为 `2026-08-30`；所有已知 `daily-quote*` 文件计数为 `0`，改版前旧图缓存约 `2.67MB`
+- 真机 release 为 `5,843,400B`，SHA-256 为 `24ec84e875fefe9503637294abdf02e54f01c3c994cb0dae2b7668c4f5b4fade`；`fc-match` 精确命中 `WenQuanYi Zen Hei`
+- 真机截图为 `800×480`，时间、日期、诗句与出处完整，无 CPA、年度进度或远程图片；X11 点击可进入并退出开始仪式
+- 真实 `xset dpms force off/on` 均成功，关开前后应用 PID 保持一致；`23:30–07:00` 与 `60` 秒唤醒边界由单元测试覆盖
+- 改版前长期运行 RSS 约 `23MB` 不能直接代表总内存：同机冷启动对照中，旧版 30 秒约为 `15MB RSS + 263MB Swap`，新版 34 秒约为 `108MB RSS + 129MB Swap`；新版 `RSS + Swap` 约 `237MB`，低于旧版约 `278MB`
 
 ### 影响范围
 
@@ -53,19 +59,20 @@
 - `ui/clock.slint`
 - `examples/render-preview.rs`
 - `scripts/render-previews.sh`
+- `scripts/watch-clock.sh`
+- `scripts/deploy-and-run-pi.sh`
+- `tests/watch-clock-config.sh`
 - 产品与维护文档
 
 ### 遗留项
 
-- 最终部署后的 RSS、缓存大小、进程存活和真机截图仍待补录
-- 白天开始仪式与夜间 DPMS 的最终设备表现要以部署后验证为准
-- 文档中不能把仓库内验证误写成已完成部署
+- 当前远程验收使用 X11 注入点击，仍建议在夜间窗口用实体触摸控制器做一次在场唤醒观察
+- 内容过滤是低唤醒氛围保护，不是完整内容审查
 
 ### 下一步建议
 
-- 部署 release 到目标设备后补充真实截图、缓存文件、RSS 和进程状态记录
 - 观察一周内今日诗词接口可用性与内容过滤命中情况
-- 如真机触摸与 DPMS 组合出现差异，再针对输入链路做专项排查
+- 若夜间实体触摸与 DPMS 组合出现差异，再针对触摸控制器到 X11 的输入链路做专项排查
 
 ## 2026-07-01 - 鼠标光标隐藏兼容修复
 

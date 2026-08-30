@@ -84,6 +84,8 @@ cargo check --example render-preview
 
 建议优先使用 SSH key 或 SSH alias，不在文档中传播口令式流程。
 
+部署脚本会在替换二进制前停止旧 watcher 和 `unclutter`。新 watcher 只由自身持有锁 FD，调用 `run-clock.sh` 时会关闭该 FD；不要用删除 `/tmp/raspberry-clock-watch.lock` 代替释放实际持锁进程。
+
 ### 3.2 远程运行前检查
 
 登录设备后建议先确认：
