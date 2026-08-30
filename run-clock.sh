@@ -10,6 +10,12 @@ export DISPLAY="${DISPLAY:-:0}"
 export XAUTHORITY="${XAUTHORITY:-/home/raspberry/.Xauthority}"
 export SLINT_BACKEND="${SLINT_BACKEND:-winit-software}"
 export SLINT_FULLSCREEN="${SLINT_FULLSCREEN:-1}"
+DISPLAY_OUTPUT="${RASPBERRY_CLOCK_DISPLAY_OUTPUT:-HDMI-1}"
+
+# MPI5001 在 Automatic 范围下会进一步压缩浅色层次；保持真机确认过的 Full RGB。
+if command -v xrandr >/dev/null 2>&1; then
+    xrandr --output "${DISPLAY_OUTPUT}" --set "Broadcast RGB" "Full" || true
+fi
 
 # 关闭桌面环境的自动屏保，但保留 DPMS 供应用按时息屏。
 xset s off || true

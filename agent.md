@@ -9,7 +9,7 @@
   - 设备：`Raspberry Pi Zero 2 W`
   - 内存：`512MB`
   - 系统：`Debian 13 (Trixie) 64-bit`
-  - 屏幕分辨率：`800×480`
+  - 屏幕：`MPI5001 / 5inch HDMI Display-B`，原生分辨率 `800×480`
   - 会话环境：`X11`
 
 ## 2. 当前状态
@@ -20,7 +20,7 @@
   - 五条白名单今日诗词分类路由与按日期稳定选择
   - 必填字段校验、`40` 字长度限制与负向词过滤
   - `current` / `previous` 双槽 JSON 缓存与内置回退诗句
-  - 程序化背景色板与昼夜色系切换
+  - 为 MPI5001 实体屏校准的深墨蓝、羊皮纸、琥珀色日间主题与夜间色系
   - 白天轻触开始仪式；夜间轻触仅临时亮屏 `60` 秒
   - `23:30–07:00` 自动息屏
   - 预览示例与三张 `800×480` 截图生成脚本
@@ -92,7 +92,7 @@ Cargo.toml                  Rust 依赖与构建配置
 build.rs                    编译 Slint UI 资源
 src/main.rs                 应用入口、时钟刷新、后台线程与 Slint 绑定
 src/daily_reading.rs        今日阅读请求、双槽缓存、过滤与离线回退
-src/background.rs           程序化背景色板与日期稳定选择
+src/background.rs           MPI5001 校准色板、昼夜模式与装饰变体
 src/domain.rs               夜间窗口判断与开始仪式状态
 src/display_power.rs        X11 DPMS 协调与 60 秒唤醒逻辑
 ui/clock.slint              800×480 固定布局与属性绑定
@@ -145,6 +145,9 @@ scripts/watch-clock.sh      时钟进程守护
 - 夜间息屏依赖 X11 的 `xset dpms force on/off`，部署环境必须保留 `x11-xserver-utils`。
 - Debian 13 当前安装的是经典版 `unclutter` 8.x，只接受 `-idle`、`-jitter`、`-root` 等单横线参数；不要改成长参数风格。
 - UI 修改必须考虑 `800×480` 屏幕，不要只按桌面显示器效果判断。
+- MPI5001 对接近白色的细微明度差分辨较弱且有冷色倾向；不要用多个浅米白、低透明度细线或微弱渐变承担信息层级。
+- macOS 预览和 `scrot` 只能证明程序输出，不能证明实体面板呈色。视觉改动必须经过真机正面观察或同环境照片复核。
+- `run-clock.sh` 会把 `HDMI-1` 设置为 `Full RGB`；如更换输出口，可通过 `RASPBERRY_CLOCK_DISPLAY_OUTPUT` 覆盖，不要只在当前 X11 会话里手工调整。
 - 开始仪式只允许白天切换文案与文字对比度，不计时、不计数、不落盘。
 - 涉及部署说明时，不要在文档里固化明文密码、固定 IP 或个人开发机路径。
 
