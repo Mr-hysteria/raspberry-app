@@ -5,12 +5,14 @@ export component AppWindow inherits Window {
     in-out property <string> reading-content: "读书不觉已春深，一寸光阴一寸金。";
     in-out property <string> reading-source: "王贞白《白鹿洞二首·其一》 · 读书";
     in-out property <bool> focus-active: false;
-    in-out property <color> canvas-color: #ebe7de;
-    in-out property <color> surface-color: #f9f6ef;
-    in-out property <color> rule-color: #86755848;
-    in-out property <color> text-primary-color: #2a2926;
-    in-out property <color> text-muted-color: #6b655b;
-    in-out property <color> accent-color: #8f6944;
+    in-out property <color> canvas-color: #182432;
+    in-out property <color> surface-color: #d7c7a6;
+    in-out property <color> rule-color: #607083;
+    in-out property <color> canvas-text-primary-color: #f0e6d2;
+    in-out property <color> canvas-text-muted-color: #b8bec4;
+    in-out property <color> text-primary-color: #1f2528;
+    in-out property <color> text-muted-color: #5d5548;
+    in-out property <color> accent-color: #c4772e;
     in-out property <int> scene-variant: 0;
     in-out property <bool> night-mode: false;
     in-out property <string> ui-font-family: "WenQuanYi Zen Hei";
@@ -26,14 +28,7 @@ export component AppWindow inherits Window {
         height: parent.height;
         background: root.canvas-color;
 
-        // A quiet tonal field replaces the old floating cards.
-        Rectangle {
-            width: parent.width;
-            height: parent.height;
-            background: @linear-gradient(135deg, #00000000 0%, #00000000 58%, root.rule-color 100%);
-        }
-
-        // Cropped hairline disc: a print-like motif rather than decoration blocks.
+        // Cropped disc: strong enough to survive the physical panel's limited tonal range.
         Rectangle {
             x: root.scene-variant == 0 ? 636px :
                root.scene-variant == 1 ? 586px :
@@ -44,7 +39,7 @@ export component AppWindow inherits Window {
             width: 272px;
             height: 272px;
             border-radius: 136px;
-            border-width: 1px;
+            border-width: 2px;
             border-color: root.rule-color;
             background: #00000000;
         }
@@ -63,10 +58,10 @@ export component AppWindow inherits Window {
             width: 410px;
             height: 28px;
             text: root.date-weekday-text;
-            color: root.text-muted-color;
+            color: root.canvas-text-muted-color;
             font-family: root.ui-font-family;
             font-size: 19px;
-            font-weight: 400;
+            font-weight: 500;
             vertical-alignment: center;
         }
 
@@ -76,7 +71,7 @@ export component AppWindow inherits Window {
             width: 188px;
             height: 24px;
             text: "DAILY READING";
-            color: root.text-muted-color;
+            color: root.canvas-text-muted-color;
             font-family: root.ui-font-family;
             font-size: 13px;
             font-weight: 400;
@@ -90,7 +85,7 @@ export component AppWindow inherits Window {
             width: 344px;
             height: 112px;
             text: root.time-text;
-            color: root.text-primary-color;
+            color: root.canvas-text-primary-color;
             font-family: root.ui-font-family;
             font-size: 98px;
             font-weight: 500;
@@ -103,7 +98,7 @@ export component AppWindow inherits Window {
             width: 36px;
             height: 24px;
             text: root.seconds-text;
-            color: root.text-muted-color;
+            color: root.canvas-text-muted-color;
             font-family: root.ui-font-family;
             font-size: 19px;
             font-weight: 400;
@@ -115,7 +110,7 @@ export component AppWindow inherits Window {
             x: 64px;
             y: 198px;
             width: 670px;
-            height: 1px;
+            height: 2px;
             background: root.rule-color;
         }
 
@@ -135,7 +130,7 @@ export component AppWindow inherits Window {
             width: 704px;
             height: 196px;
             border-radius: 14px;
-            border-width: 1px;
+            border-width: 2px;
             border-color: root.focus-active ? root.accent-color : root.rule-color;
             background: root.surface-color;
 
@@ -193,7 +188,7 @@ export component AppWindow inherits Window {
             color: root.text-muted-color;
             font-family: root.ui-font-family;
             font-size: 18px;
-            font-weight: 400;
+            font-weight: 500;
             vertical-alignment: center;
             overflow: clip;
         }
@@ -204,10 +199,10 @@ export component AppWindow inherits Window {
             width: 672px;
             height: 26px;
             text: root.focus-active ? "已经开始了，先读一页就好" : "轻触一下，先读一页";
-            color: root.focus-active ? root.accent-color : root.text-muted-color;
+            color: root.focus-active ? root.accent-color : root.canvas-text-muted-color;
             font-family: root.ui-font-family;
             font-size: 18px;
-            font-weight: 400;
+            font-weight: 500;
             vertical-alignment: center;
         }
 

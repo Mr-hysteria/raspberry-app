@@ -18,6 +18,8 @@ pub struct BackgroundScene {
     pub canvas: RgbaColor,
     pub surface: RgbaColor,
     pub rule: RgbaColor,
+    pub canvas_text_primary: RgbaColor,
+    pub canvas_text_muted: RgbaColor,
     pub text_primary: RgbaColor,
     pub text_muted: RgbaColor,
     pub accent: RgbaColor,
@@ -26,39 +28,47 @@ pub struct BackgroundScene {
 
 const DAY_SCENES: [BackgroundScene; 4] = [
     BackgroundScene {
-        canvas: rgba(232, 228, 219, 255),
-        surface: rgba(247, 244, 238, 255),
-        rule: rgba(145, 118, 88, 80),
-        text_primary: rgba(42, 41, 38, 255),
-        text_muted: rgba(105, 101, 94, 255),
-        accent: rgba(145, 108, 70, 255),
+        canvas: rgba(24, 36, 50, 255),
+        surface: rgba(215, 199, 166, 255),
+        rule: rgba(96, 112, 131, 255),
+        canvas_text_primary: rgba(240, 230, 210, 255),
+        canvas_text_muted: rgba(184, 190, 196, 255),
+        text_primary: rgba(31, 37, 40, 255),
+        text_muted: rgba(93, 85, 72, 255),
+        accent: rgba(196, 119, 46, 255),
         variant: 0,
     },
     BackgroundScene {
-        canvas: rgba(229, 232, 225, 255),
-        surface: rgba(245, 246, 241, 255),
-        rule: rgba(125, 130, 108, 72),
-        text_primary: rgba(39, 44, 40, 255),
-        text_muted: rgba(96, 104, 97, 255),
-        accent: rgba(130, 104, 72, 255),
+        canvas: rgba(24, 36, 50, 255),
+        surface: rgba(215, 199, 166, 255),
+        rule: rgba(96, 112, 131, 255),
+        canvas_text_primary: rgba(240, 230, 210, 255),
+        canvas_text_muted: rgba(184, 190, 196, 255),
+        text_primary: rgba(31, 37, 40, 255),
+        text_muted: rgba(93, 85, 72, 255),
+        accent: rgba(196, 119, 46, 255),
         variant: 1,
     },
     BackgroundScene {
-        canvas: rgba(235, 231, 222, 255),
-        surface: rgba(249, 246, 239, 255),
-        rule: rgba(134, 117, 88, 72),
-        text_primary: rgba(42, 41, 38, 255),
-        text_muted: rgba(107, 101, 91, 255),
-        accent: rgba(143, 105, 68, 255),
+        canvas: rgba(24, 36, 50, 255),
+        surface: rgba(215, 199, 166, 255),
+        rule: rgba(96, 112, 131, 255),
+        canvas_text_primary: rgba(240, 230, 210, 255),
+        canvas_text_muted: rgba(184, 190, 196, 255),
+        text_primary: rgba(31, 37, 40, 255),
+        text_muted: rgba(93, 85, 72, 255),
+        accent: rgba(196, 119, 46, 255),
         variant: 2,
     },
     BackgroundScene {
-        canvas: rgba(235, 228, 224, 255),
-        surface: rgba(249, 244, 240, 255),
-        rule: rgba(155, 109, 90, 72),
-        text_primary: rgba(48, 40, 37, 255),
-        text_muted: rgba(112, 96, 90, 255),
-        accent: rgba(151, 96, 74, 255),
+        canvas: rgba(24, 36, 50, 255),
+        surface: rgba(215, 199, 166, 255),
+        rule: rgba(96, 112, 131, 255),
+        canvas_text_primary: rgba(240, 230, 210, 255),
+        canvas_text_muted: rgba(184, 190, 196, 255),
+        text_primary: rgba(31, 37, 40, 255),
+        text_muted: rgba(93, 85, 72, 255),
+        accent: rgba(196, 119, 46, 255),
         variant: 3,
     },
 ];
@@ -67,7 +77,9 @@ const NIGHT_SCENES: [BackgroundScene; 4] = [
     BackgroundScene {
         canvas: rgba(22, 24, 27, 255),
         surface: rgba(32, 34, 37, 255),
-        rule: rgba(172, 139, 99, 72),
+        rule: rgba(79, 88, 100, 255),
+        canvas_text_primary: rgba(235, 228, 214, 255),
+        canvas_text_muted: rgba(165, 158, 146, 255),
         text_primary: rgba(235, 228, 214, 255),
         text_muted: rgba(165, 158, 146, 255),
         accent: rgba(184, 143, 96, 255),
@@ -76,7 +88,9 @@ const NIGHT_SCENES: [BackgroundScene; 4] = [
     BackgroundScene {
         canvas: rgba(20, 27, 25, 255),
         surface: rgba(29, 37, 34, 255),
-        rule: rgba(146, 145, 110, 64),
+        rule: rgba(79, 88, 100, 255),
+        canvas_text_primary: rgba(229, 232, 221, 255),
+        canvas_text_muted: rgba(159, 168, 157, 255),
         text_primary: rgba(229, 232, 221, 255),
         text_muted: rgba(159, 168, 157, 255),
         accent: rgba(171, 142, 96, 255),
@@ -85,7 +99,9 @@ const NIGHT_SCENES: [BackgroundScene; 4] = [
     BackgroundScene {
         canvas: rgba(23, 24, 26, 255),
         surface: rgba(34, 35, 37, 255),
-        rule: rgba(168, 139, 96, 64),
+        rule: rgba(79, 88, 100, 255),
+        canvas_text_primary: rgba(235, 229, 216, 255),
+        canvas_text_muted: rgba(166, 159, 147, 255),
         text_primary: rgba(235, 229, 216, 255),
         text_muted: rgba(166, 159, 147, 255),
         accent: rgba(182, 141, 93, 255),
@@ -94,7 +110,9 @@ const NIGHT_SCENES: [BackgroundScene; 4] = [
     BackgroundScene {
         canvas: rgba(28, 22, 22, 255),
         surface: rgba(39, 31, 30, 255),
-        rule: rgba(177, 125, 105, 64),
+        rule: rgba(79, 88, 100, 255),
+        canvas_text_primary: rgba(238, 227, 219, 255),
+        canvas_text_muted: rgba(173, 158, 150, 255),
         text_primary: rgba(238, 227, 219, 255),
         text_muted: rgba(173, 158, 150, 255),
         accent: rgba(192, 137, 107, 255),
@@ -138,23 +156,39 @@ mod tests {
     }
 
     #[test]
-    fn fixed_dates_cover_more_than_one_day_palette() {
+    fn day_dates_keep_one_panel_calibrated_palette() {
         let dates = ["2026-08-30", "2026-08-31", "2026-09-01", "2026-09-02"];
-        let canvases: BTreeSet<_> = dates
+        let palettes: BTreeSet<_> = dates
             .into_iter()
-            .map(|date| background_for_date(date, false).canvas)
+            .map(|date| {
+                let scene = background_for_date(date, false);
+                (
+                    scene.canvas,
+                    scene.surface,
+                    scene.rule,
+                    scene.canvas_text_primary,
+                    scene.canvas_text_muted,
+                    scene.text_primary,
+                    scene.text_muted,
+                    scene.accent,
+                )
+            })
             .collect();
         let variants: BTreeSet<_> = dates
             .into_iter()
             .map(|date| background_for_date(date, false).variant)
             .collect();
 
-        assert!(canvases.len() > 1);
+        assert_eq!(
+            palettes.len(),
+            1,
+            "physical-screen calibration must stay stable"
+        );
         assert!(variants.len() > 1);
     }
 
     #[test]
-    fn all_scene_colors_are_opaque_or_intentionally_translucent() {
+    fn all_scene_colors_are_opaque_for_predictable_panel_output() {
         for (mode, scenes) in [("day", &DAY_SCENES), ("night", &NIGHT_SCENES)] {
             for (index, scene) in scenes.iter().enumerate() {
                 assert_eq!(scene.canvas.a, 255, "{mode} scene {index} canvas");
@@ -165,9 +199,14 @@ mod tests {
                 assert_eq!(scene.text_muted.a, 255, "{mode} scene {index} muted text");
                 assert_eq!(scene.accent.a, 255, "{mode} scene {index} accent");
                 assert_eq!(scene.surface.a, 255, "{mode} scene {index} surface");
-                assert!(
-                    (48..=112).contains(&scene.rule.a),
-                    "{mode} scene {index} editorial rule"
+                assert_eq!(scene.rule.a, 255, "{mode} scene {index} editorial rule");
+                assert_eq!(
+                    scene.canvas_text_primary.a, 255,
+                    "{mode} scene {index} canvas primary text"
+                );
+                assert_eq!(
+                    scene.canvas_text_muted.a, 255,
+                    "{mode} scene {index} canvas muted text"
                 );
             }
         }
@@ -197,6 +236,43 @@ mod tests {
     }
 
     #[test]
+    fn day_palette_survives_a_low_dynamic_range_panel() {
+        for (index, scene) in DAY_SCENES.iter().enumerate() {
+            let canvas = luminance(scene.canvas);
+            let surface = luminance(scene.surface);
+
+            assert!(canvas <= 60_000, "day scene {index} canvas must be deep");
+            assert!(
+                (150_000..=225_000).contains(&surface),
+                "day scene {index} paper must stay below near-white clipping"
+            );
+            assert!(
+                surface.abs_diff(canvas) >= 110_000,
+                "day scene {index} needs coarse luminance separation"
+            );
+        }
+    }
+
+    #[test]
+    fn day_clock_and_paper_keep_independent_contrast() {
+        for (index, scene) in DAY_SCENES.iter().enumerate() {
+            assert!(
+                luminance(scene.canvas_text_primary).abs_diff(luminance(scene.canvas)) >= 150_000,
+                "day scene {index} clock must stay bright on the ink canvas"
+            );
+            assert!(
+                luminance(scene.canvas_text_muted).abs_diff(luminance(scene.canvas)) >= 75_000,
+                "day scene {index} canvas metadata must stay visible"
+            );
+            assert!(
+                luminance(scene.text_primary).abs_diff(luminance(scene.surface)) >= 120_000,
+                "day scene {index} reading text must stay dark on paper"
+            );
+            assert_ne!(scene.canvas_text_primary, scene.text_primary);
+        }
+    }
+
+    #[test]
     fn editorial_surface_keeps_high_reading_contrast() {
         for (mode, scenes) in [("day", &DAY_SCENES), ("night", &NIGHT_SCENES)] {
             for (index, scene) in scenes.iter().enumerate() {
@@ -210,13 +286,10 @@ mod tests {
     }
 
     #[test]
-    fn editorial_rule_stays_translucent() {
+    fn editorial_rule_does_not_depend_on_panel_alpha_detail() {
         for (mode, scenes) in [("day", &DAY_SCENES), ("night", &NIGHT_SCENES)] {
             for (index, scene) in scenes.iter().enumerate() {
-                assert!(
-                    (48..=112).contains(&scene.rule.a),
-                    "{mode} scene {index} editorial rule"
-                );
+                assert_eq!(scene.rule.a, 255, "{mode} scene {index} editorial rule");
             }
         }
     }

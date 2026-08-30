@@ -69,6 +69,8 @@ fn apply_preview_state(app: &AppWindow, state: &str) -> Result<(), Box<dyn std::
     app.set_canvas_color(scene.canvas.to_slint_color());
     app.set_surface_color(scene.surface.to_slint_color());
     app.set_rule_color(scene.rule.to_slint_color());
+    app.set_canvas_text_primary_color(scene.canvas_text_primary.to_slint_color());
+    app.set_canvas_text_muted_color(scene.canvas_text_muted.to_slint_color());
     app.set_text_primary_color(scene.text_primary.to_slint_color());
     app.set_text_muted_color(scene.text_muted.to_slint_color());
     app.set_accent_color(scene.accent.to_slint_color());
