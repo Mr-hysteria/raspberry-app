@@ -20,25 +20,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (state, output_path) = parse_args()?;
 
     let app = AppWindow::new()?;
-    let scene = scene_for_state(&state)?;
     let snapshot_status = Rc::new(RefCell::new(None));
-
-    app.window()
-        .set_size(slint::PhysicalSize::new(WIDTH, HEIGHT));
-    app.set_time_text("09:41".into());
-    app.set_seconds_text("27".into());
-    app.set_date_weekday_text("2026年08月30日 · 星期日".into());
-    app.set_reading_content("幼敏悟过人，读书辄成诵。".into());
-    app.set_reading_source("欧阳修《画地学书》 · 读书".into());
-    app.set_focus_active(state == "focus");
-    app.set_canvas_color(scene.canvas.to_slint_color());
-    app.set_wash_primary_color(scene.wash_primary.to_slint_color());
-    app.set_wash_secondary_color(scene.wash_secondary.to_slint_color());
-    app.set_text_primary_color(scene.text_primary.to_slint_color());
-    app.set_text_muted_color(scene.text_muted.to_slint_color());
-    app.set_accent_color(scene.accent.to_slint_color());
-    app.set_scene_variant(scene.variant.into());
-    app.set_night_mode(state == "night");
+    apply_preview_state(&app, &state)?;
 
     schedule_snapshot(app.as_weak(), output_path, snapshot_status.clone());
     app.show()?;
@@ -70,6 +53,29 @@ fn scene_for_state(state: &str) -> Result<background::BackgroundScene, Box<dyn s
         "night" => Ok(background_for_date("2026-08-30", true)),
         _ => Err(format!("unknown preview state: {state}").into()),
     }
+}
+
+fn apply_preview_state(app: &AppWindow, state: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let scene = scene_for_state(state)?;
+
+    app.window()
+        .set_size(slint::PhysicalSize::new(WIDTH, HEIGHT));
+    app.set_time_text("09:41".into());
+    app.set_seconds_text("27".into());
+    app.set_date_weekday_text("2026年08月30日 · 星期日".into());
+    app.set_reading_content("幼敏悟过人，读书辄成诵。".into());
+    app.set_reading_source("欧阳修《画地学书》 · 读书".into());
+    app.set_focus_active(state == "focus");
+    app.set_canvas_color(scene.canvas.to_slint_color());
+    app.set_wash_primary_color(scene.wash_primary.to_slint_color());
+    app.set_wash_secondary_color(scene.wash_secondary.to_slint_color());
+    app.set_text_primary_color(scene.text_primary.to_slint_color());
+    app.set_text_muted_color(scene.text_muted.to_slint_color());
+    app.set_accent_color(scene.accent.to_slint_color());
+    app.set_scene_variant(scene.variant.into());
+    app.set_night_mode(state == "night");
+
+    Ok(())
 }
 
 fn schedule_snapshot(
@@ -131,4 +137,19 @@ fn write_ppm(
 
 fn usage_error() -> String {
     "usage: render-preview <day|focus|night> <output.ppm>".to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn preview_uses_production_font_by_default() {
+        i_slint_backend_testing::init_no_event_loop();
+
+        let app = AppWindow::new().expect("preview test should create AppWindow");
+        apply_preview_state(&app, "day").expect("preview test should configure day state");
+
+        assert_eq!(app.get_ui_font_family().as_str(), "WenQuanYi Zen Hei");
+    }
 }
